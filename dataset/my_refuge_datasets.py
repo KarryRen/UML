@@ -62,18 +62,3 @@ class JointRefugeDataset(torch.utils.data.Dataset):
     def get_img_info(self, idx):
         image = plt.imread(self.img_list[idx])
         return {"height": image.shape[0], "width": image.shape[1]}
-
-
-if __name__ == '__main__':
-    database = JointRefugeDataset(path_refuge_data=config.REFUGE_DATA_FILE, data_type='train')
-    train_loader = torch.utils.data.DataLoader(
-        database, batch_size=config.REFUGE_BATCH_SIZE,
-        num_workers=0, shuffle=True, pin_memory=False, drop_last=True)
-    print(len(train_loader))
-    sum_covid = 0
-    sum_nonCovid = 0
-    for i_iter, batch in enumerate(train_loader):
-        images, masks, labels, names = batch
-        print(masks.max(), masks.min())
-        print(labels)
-    print(sum_covid, sum_nonCovid)
