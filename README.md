@@ -32,7 +32,7 @@ features and performance for each link (classification and segmentation). The ex
 demonstrate that our UML outperforms existing methods in terms of both accuracy and robustness. Our UML has the
 potential to explore the development of more reliable and explainable medical image analysis models.
 
-<img src="./images/UML_Framework.jpg" alt="UML_Framework " style="zoom:7%;" />
+<img src="./images/UML_Framework.jpg" alt="UML_Framework " style="zoom:70%;" />
 
 
 
