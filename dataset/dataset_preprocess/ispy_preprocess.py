@@ -4,7 +4,7 @@
 
 """ The preprocess code of raw I-SPY1 dataset (download from web).
 
-Please Download I-SPY1 dataset following `README.md`,
+Please `DOWNLOAD` I-SPY1 dataset following `README.md`,
     and move all files to `ISPY_DATASET_DOWNLOAD_PATH` to get the following directory structure:
     ISPY_DATASET_DOWNLOAD_PATH/
         ├── Dataset ISPY
@@ -15,7 +15,7 @@ Then you need to creat the following directory structure BY HAND:
     ISPY_DATASET_PROCESS_PATH/
         ├── Train
             ├── images
-                ├── ispy_xxxx1
+                ├── ispy_xxxx1 (KEEP_SLICE_NUM images)
                     ├── ispy_xxxx1_pcr_s1_img.jpg
                     ├── ispy_xxxx1_pcr_s2_img.jpg
                     ├── ...
@@ -24,7 +24,7 @@ Then you need to creat the following directory structure BY HAND:
                 ├── ...
                 └── ispy_xxxxn
             └── masks
-                ├── ispy_xxxx1
+                ├── ispy_xxxx1 (KEEP_SLICE_NUM masks)
                     ├── ispy_xxxx1_pcr_s1_msk.jpg
                     ├── ispy_xxxx1_pcr_s2_msk.jpg
                     ├── ...
@@ -38,6 +38,11 @@ Then you need to creat the following directory structure BY HAND:
         └── Test
             ├── images
             └── masks
+
+The core operations of this preprocessing are:
+    - split the dataset to train | valid | test.
+    - slice the 3D images(masks) to 2d images(masks).
+    - put the label to the image name.
 
 Firstly you should set the `ISPY_DATASET_DOWNLOAD_PATH` and `ISPY_DATASET_PROCESS_PATH`
 based on your situation, and set the hyper-param `KEEP_SLICE_NUM`.
