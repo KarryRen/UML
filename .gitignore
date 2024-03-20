@@ -6,8 +6,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# hg yaml
-higgs_deeplob/job_config*
+# idea
+.idea/
 
 # C extensions
 *.so
