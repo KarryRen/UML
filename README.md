@@ -3,8 +3,7 @@
 > This repository provides the code for our accepted **MICCAI2023 paper** "Uncertainty-Informed Mutual Learning for
 > Joint Medical Image Classification and Segmentation". 
 > 
-> Official implementation: [**UML**](https://link.springer.com/chapter/10.1007/978-3-031-43901-8_4)
->
+> Official implementation: [**UML**](https://link.springer.com/chapter/10.1007/978-3-031-43901-8_4). 
 > The structure of this repository is as follows:
 >
 > ```python
