@@ -9,10 +9,13 @@
 > UML/
 > ├── images # All images used in this repository.
 > ├── dataset
->     ├── dataset_preprocess
->        ├── ispy_preprocess.py # The preprocess code of I-SPY1 dataset.
+>   ├── dataset_preprocess
+>     ├── ispy_preprocess.py # The preprocess code of I-SPY1 dataset.
+>   ├── ispy_dataset.py # The torch.Dataset of I-SPY1 dataset.
 > └── 
 > ```
+
+
 
 ## Introduction
 
@@ -28,6 +31,8 @@ features and performance for each link (classification and segmentation). The ex
 demonstrate that our UML outperforms existing methods in terms of both accuracy and robustness. Our UML has the
 potential to explore the development of more reliable and explainable medical image analysis models.
 
+<img src="./images/UML_Framework.jpg" alt="UML_Framework " style="zoom:7%;" />
+
 
 
 ## Dataset Acquisition
@@ -36,7 +41,7 @@ We use **3 datasets** to test our UML network. You can download the raw dataset 
 
 - **I-SPY1 Trail Dataset**. Could be downloaded from [**HERE**](https://www.kaggle.com/datasets/saarthakkapse/ispy1-trail-dataset) ! The Pre-Process code is in `ispy_preprocess.py`.
 - **Refuge Glaucoma**. Could be downloaded from [**HERE**](https://pan.baidu.com/s/1DE8a3UgwGJY85bsr4U7tdw?pwd=2023) !
-- **ISIC Challenge 2017**. Could be downloaded from [**HERE**](https://challenge.isic-archive.com/data/#2017) !
+- **ISIC Challenge 2017**. Could be downloaded from [**HERE**](https://challenge.isic-archive.com/data/#2017) ! The Pre-Porcess code is updating 🚀 !
 
 
 
