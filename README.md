@@ -10,7 +10,7 @@
 > ├── images # All images used in this repository.
 > ├── dataset
 >     ├── dataset_preprocess
->         ├── ispy_preprocess.py # The preprocess code of I-SPY1 dataset.
+>        ├── ispy_preprocess.py # The preprocess code of I-SPY1 dataset.
 > └── TensorEngineering # The tensor engineering for deeplob.
 > ```
 
@@ -32,7 +32,7 @@ potential to explore the development of more reliable and explainable medical im
 
 ## Dataset Acquisition
 
-We use 3 datasets to test our UML network.
+We use **3 datasets** to test our UML network. You can download the raw dataset from the following links, we also write the Pre-Process code. Please read them carefully and follow the guidelines !
 
 - **I-SPY1 Trail Dataset**. Could be downloaded from [**HERE**](https://www.kaggle.com/datasets/saarthakkapse/ispy1-trail-dataset) ! The Pre-Process code is in `ispy_preprocess.py`.
 - **Refuge Glaucoma**. Could be downloaded from [**HERE**](https://pan.baidu.com/s/1DE8a3UgwGJY85bsr4U7tdw?pwd=2023) !
