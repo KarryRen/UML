@@ -4,6 +4,9 @@
 
 """ The preprocess code of raw I-SPY1 dataset (download from web).
 
+Because we want to make the code clear and beautiful, so we need you to
+    do some directory creation !!!
+
 Please `DOWNLOAD` I-SPY1 dataset following `README.md`,
     and move all files to `ISPY_DATASET_DOWNLOAD_PATH` to get the following directory structure:
     ISPY_DATASET_DOWNLOAD_PATH/
@@ -11,7 +14,7 @@ Please `DOWNLOAD` I-SPY1 dataset following `README.md`,
         ├── outcome_new.xlsx
         └── Tumor_segmentation_new
 
-Then you need to creat the following directory structure BY HAND:
+Then you need to creat the following directory structure `BY HAND`:
     ISPY_DATASET_PROCESS_PATH/
         ├── Train
             ├── images
@@ -66,6 +69,9 @@ ISPY_DATASET_PROCESS_PATH = "/Users/karry/KarryRen/Scientific-Projects/2023-UML/
 # (we suggest you only keep 10 slices for each case)
 KEEP_SLICE_NUM = 10
 
+# begin pre-process
+print(f"===================== I-SPY1 Begin Pre-Process =====================")
+
 # ---- Step 1. Read the `SUBJECTID` and `PCR` from the `outcome_new.xlsx` ---- #
 id_pcr0_tuple_list = []  # define the id and pcr(label=0) tuple empty list
 id_pcr1_tuple_list = []  # define the id and pcr(label=1) tuple empty list
@@ -97,7 +103,7 @@ print(f"Split: "
 # ---- Step 3. For-loop the id_pcr_tuple list and store .nii to .jpg images ---- #
 for data_type in ["Train", "Valid", "Test"]:
     # get which id_pcr_tuple_list to read
-    print(data_type)
+    print(f"============ {data_type} =============")
     if data_type == "Train":
         id_pcr_tuple_list = train_id_pcr_tuple_list
     elif data_type == "Valid":
@@ -169,3 +175,5 @@ for data_type in ["Train", "Valid", "Test"]:
                 if slice_num == KEEP_SLICE_NUM:
                     break
         assert slice_num == KEEP_SLICE_NUM, "Slice num WRONG !!"
+
+print(f"===================== I-SPY1 Pre-Process Over ! =====================")
