@@ -12,6 +12,7 @@
 > ├── dataset
 >   ├── dataset_preprocess
 >     ├── ispy_preprocess.py # The preprocess code of I-SPY1 dataset.
+>     ├── refuge_preprocess.py # The preprocess code of REFUGE Glaucoma dataset.
 >   ├── ispy_dataset.py # The torch.Dataset of I-SPY1 dataset.
 > └── 
 > ```
@@ -38,10 +39,10 @@ potential to explore the development of more reliable and explainable medical im
 
 ## Dataset Acquisition
 
-We use **3 datasets** to test our UML network. You can download the raw dataset from the following links, we also write the Pre-Process code. Please read them carefully and follow the guidelines !
+We use **3 Datasets** to test our UML network. You can **DOWNLOAD** the raw dataset from the following links. We also write the **Pre-Process** code, please read them carefully and follow the guidelines in the comment !
 
 - **I-SPY1 Trail Dataset**. Could be downloaded from [**HERE**](https://www.kaggle.com/datasets/saarthakkapse/ispy1-trail-dataset) ! The Pre-Process code is in `ispy_preprocess.py`.
-- **Refuge Glaucoma**. Could be downloaded from [**HERE**](https://pan.baidu.com/s/1DE8a3UgwGJY85bsr4U7tdw?pwd=2023) !
+- **Refuge Glaucoma**. Could be downloaded from [**HERE**](https://pan.baidu.com/s/1DE8a3UgwGJY85bsr4U7tdw?pwd=2023) ! T he Pre-Process code is in `refuge_preprocess.py`
 - **ISIC Challenge 2017**. Could be downloaded from [**HERE**](https://challenge.isic-archive.com/data/#2017) ! The Pre-Porcess code is updating 🚀 !
 
 
