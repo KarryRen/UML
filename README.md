@@ -9,15 +9,16 @@
 > ```python
 > UML/
 > ├── images # All images used in this repository.
->   ├── UML_Framework.jpg # The Framework image.
-> ├── dataset
->   ├── dataset_preprocess
->     ├── ispy_preprocess.py # The preprocess code of I-SPY1 dataset.
->     ├── refuge_preprocess.py # The preprocess code of REFUGE Glaucoma dataset.
->     ├── isic_preprocess.py # The preprocess code of ISIC dataset. Updating 🚀.
->   ├── ispy_dataset.py # The torch.Dataset of I-SPY1 dataset.
->   ├── refuge_dataset.py # The torch.Dataset of Refuge dataset.
->   ├── isic_dataset.py # The torch.Dataset of Refuge dataset. Updating 🚀.
+>     ├── UML_Framework.jpg # The Framework image.
+> ├── datasets
+>     ├── datasets_preprocess
+>         ├── ispy_preprocess.py # The preprocess code of I-SPY1 dataset.
+>         ├── refuge_preprocess.py # The preprocess code of REFUGE Glaucoma dataset.
+>         └── isic_preprocess.py # The preprocess code of ISIC dataset. Updating 🚀.
+>     ├── ispy_dataset.py # The torch.Dataset of I-SPY1 dataset.
+>     ├── refuge_dataset.py # The torch.Dataset of Refuge dataset.
+>     └── isic_dataset.py # The torch.Dataset of Refuge dataset. Updating 🚀.
+> ├── models
 > └── config.py # The Config file, set all hyperparameters here.
 > ```
 
@@ -37,7 +38,7 @@ features and performance for each link (classification and segmentation). The ex
 demonstrate that our UML outperforms existing methods in terms of both accuracy and robustness. Our UML has the
 potential to explore the development of more reliable and explainable medical image analysis models.
 
-<img src="./images/UML_Framework.jpg" alt="UML_Framework " style="zoom:70%;" />
+<img src="./images/UML_Framework.jpg" alt="UML_Framework " style="zoom:60%;" />
 
 
 
@@ -56,12 +57,16 @@ We use **3 Datasets** to test our UML network. You can **DOWNLOAD** the raw data
 After downloading the datasets following the **Dataset Acquisition**, data preprocessing is needed which is to reformat the directory structure  of datasets. We have released Pre-Process code for datasets, please read them carefully and follow the guidelines in the comment ! Also we released `torch.Dataset` code for datasets,
 
 - **I-SPY1 Trail Dataset**. 
-  - The Pre-Process code is in `ispy_preprocess.py`, HERE !
-  - The  `torch.Dataset` code is in `ispy_dataset.py`, HERE !
+  - The Pre-Process code is in `ispy_preprocess.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/dataset_preprocess/ispy_preprocess.py) !
+  - The  `torch.Dataset` code is in `ispy_dataset.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/ispy_dataset.py) !
 - **Refuge Glaucoma**. 
-  - The Pre-Process code is in `refuge_preprocess.py` HERE !
-  - The  `torch.Dataset` code is in `refuge_dataset.py`, HERE !
+  - The Pre-Process code is in `refuge_preprocess.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/dataset_preprocess/refuge_preprocess.py) !
+  - The  `torch.Dataset` code is in `refuge_dataset.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/refuge_dataset.py) !
 - **ISIC Challenge 2017**. 
   - The Pre-Porcess code is updating 🚀 !
   - The  `torch.Dataset` code is updating 🚀 !
+
+
+
+
 
