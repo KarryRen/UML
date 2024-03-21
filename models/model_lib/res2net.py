@@ -3,8 +3,10 @@
 # @Author  : Karry Ren
 
 
-""" The pre-trained Res2Net module.  Ref. https://github.com/Res2Net/Res2Net-PretrainedModels.
-    Now we just select `res2net50_v1b_26w_4s` to use.
+""" The pretrained Res2Net module.  Ref. https://github.com/Res2Net/Res2Net-PretrainedModels.
+      Now we just select `res2net50_v1b_26w_4s` to use.
+    We use this pretrained model just like a black box, so we don't write the detail comment
+      in this code.
 
 """
 

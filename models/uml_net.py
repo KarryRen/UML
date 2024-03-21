@@ -9,14 +9,12 @@ The network is little different from our paper. This network is more powerful !
 You might have some questions about our Network:
     1. Why we choose Res2Net as a feature encoder backbone ?
         To be honest, at the beginning of this study, we ref one paper to build up our mutual learning network `JCS`
-            Ref. https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9357961
+          Ref. https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9357961
         That paper selected Res2Net as the classification backbone and VGG16 as the segmentation backbone.
-            As you can see, in our released MICCAI2023 paper we build up our UML_Net just like it.
+          As you can see, in our released MICCAI2023 paper we build up our UML_Net just like it.
         But in the following experiments, we found that using Res2Net to do the classification and segmentation is
-            more accurate and robust, so we choose Res2Net as the backbone for both cls and seg feature encoding !
-            They have the same structure while not sharing the params.
-
-
+          more accurate and robust, so we choose Res2Net as the backbone for both cls and seg feature encoding !
+          They have the same structure while not sharing the params.
 
 """
 

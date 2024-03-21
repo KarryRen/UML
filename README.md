@@ -18,7 +18,10 @@
 >     ├── refuge_dataset.py # The torch.Dataset of Refuge dataset.
 >     └── isic_dataset.py # The torch.Dataset of Refuge dataset. Updating 🔥.
 > ├── models
->     
+>     ├── uml_net.py # The Uncertainty Mutual Leaning Neural Network.
+>     ├── modules.py # The modules for UML_Net.
+>     └── model_lib 
+>         └── res2net.py # The pre-trained Res2Net module.
 > └── config.py # The Config file, set all hyperparameters here.
 > ```
 
@@ -69,6 +72,12 @@ After downloading the datasets following the **Dataset Acquisition**, data prepr
 
 
 ## Training & Prediction
+
+### Pretrained Models
+
+We use a the Pretrained [**Res2Net**](https://github.com/Res2Net/Res2Net-PretrainedModels?tab=readme-ov-file): **Res2Net-50-26w-4s**, you can download the `.pth` file from [**HERE**]((https://onedrive.live.com/redir?resid=4F84AEAD730E434C!116&authkey=!AOTqhF8ne_aakDI&e=EVb8Ri)) ! The path of this `.pth` file is an important [**parameter**](https://github.com/KarryRen/UML/blob/main/models/uml_net.py#L34) in the `__init__()` function of `UML_Net`.
+
+
 
 
 

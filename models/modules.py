@@ -13,15 +13,17 @@ All modules can be divided into 2 classes:
 
 """
 
+from typing import List
 import torch
 import torch.nn as nn
+import torch.functional as F
 
 
 # ************************************************************************************ #
 # ***************************** THE MODULES FOR UML_NET ****************************** #
 # ************************************************************************************ #
 class PairWiseFeatureMixer(nn.Module):
-    """ The module which mix features of [cls feature list] and [seg feature list]
+    """ The module which mix features in [cls feature list] and [seg feature list]
         to [mutual feature list] by Pairwise Channel Map Interaction.
 
         Ref. https://www.sciencedirect.com/science/article/abs/pii/S1568494622006184
@@ -30,7 +32,7 @@ class PairWiseFeatureMixer(nn.Module):
 
     def __init__(self):
         """ Init function of PairWiseFeatureMixer.
-        For simplification, we just fix the hyperparameters in this model.
+            For simplification, we just fix the hyperparameters in this model.
 
         """
 
@@ -63,7 +65,7 @@ class PairWiseFeatureMixer(nn.Module):
         self.out_conv3 = BasicConv2d(512, 512, kernel_size=1)
         self.out_conv4 = BasicConv2d(512, 1024, kernel_size=1)
 
-    def forward(self, cls_feature_list: list, seg_feature_list: list):
+    def forward(self, cls_feature_list: List[torch.Tensor], seg_feature_list: List[torch.Tensor]):
         """ Forward function of PairWiseFeatureMixer.
 
         :param: cls_feature_list: feature list of classification encoder
@@ -77,7 +79,7 @@ class PairWiseFeatureMixer(nn.Module):
             - item_3, shape=(bs, 1024, h/8, w/8)
 
         returns:
-            - mixed_feature_list: feature list after feature mixing
+            - mutual_feature_list: feature list after feature mixing using for mutual learning
                 (have the same shape items with cls and seg feature list) !
 
         """
@@ -119,8 +121,8 @@ class PairWiseFeatureMixer(nn.Module):
         out_f4 = self.out_conv4(f4)  # 512 => 1024 out_f4: (bs, 1024, h/8, w/8)
 
         # ---- Step 5. List the out features and return ---- #
-        mixed_feature_list = [out_f1, out_f2, out_f3, out_f4]
-        return mixed_feature_list
+        mutual_feature_list = [out_f1, out_f2, out_f3, out_f4]
+        return mutual_feature_list
 
     def channel_shuffle(self, x: torch.Tensor):
         """ Do the channel shuffle, the core operation of feature mixer.
@@ -142,12 +144,114 @@ class PairWiseFeatureMixer(nn.Module):
         return x
 
 
+class MutualFeatureDecoder(nn.Module):
+    """ The `TBraTS-liked` feature decoder of mutual_feature_list. """
+
+    def __init__(self, seg_classes: int):
+        """ Init function of MutualFeatureDecoder.
+
+        :param seg_classes: the target classed of segmentation task.
+
+        """
+
+        super(MutualFeatureDecoder, self).__init__()
+        self.seg_classes = seg_classes
+
+        #
+        self.conv_adj_channel3 = BasicConv2d(1024, 512)
+        self.conv_adj_channel2 = BasicConv2d(512, 256)
+        self.conv_adj_channel1 = BasicConv2d(256, 128)
+
+        # Backbone Unet decoder structure to decoding features
+        self.up_conv3 = UpConv2d(512, 256)
+        self.up_conv2 = UpConv2d(256, 128)
+        self.up_conv1 = UpConv2d(128, 64)
+
+        # four out conv layers
+        self.out_conv4 = nn.Sequential(
+            BasicConv2d(512, 256),
+            BasicConv2d(256, self.seg_classes)
+        )
+        self.out_conv3 = nn.Sequential(
+            BasicConv2d(256, 128),
+            BasicConv2d(128, self.seg_classes)
+        )
+        self.out_conv2 = nn.Sequential(
+            BasicConv2d(128, 64),
+            BasicConv2d(64, self.seg_classes)
+        )
+        self.out_conv1 = nn.Sequential(
+            BasicConv2d(64, 32),
+            BasicConv2d(32, self.seg_classes)
+        )
+
+    def forward(self, mutual_feature_list: List[torch.Tensor]):
+        """
+        Args:
+            mutual_feature_list: input encoding feature (skip connection)
+        Returns:
+            mutual_evidence: (bs, seg_cls, h, w)
+            mutual_alpha: (bs, seg_cls, h, w)
+            mutual_uncertainty: (bs, 1, h, w)
+            mutual_info_list: [(bs, 64, h, w), (bs, 128, h/2, w/2), (bs, 256, h/4, w/4)]
+        """
+
+        mutual_info_list = [None] * len(mutual_feature_list)
+        mutual_feature_out_list = [None] * len(mutual_feature_list)
+
+        # ---- Step 0. adjust channel ---- #
+        encoding_feature3 = self.conv_adj_channel3(mutual_feature_list[3])
+        encoding_feature2 = self.conv_adj_channel2(mutual_feature_list[2])
+        encoding_feature1 = self.conv_adj_channel1(mutual_feature_list[1])
+        encoding_feature0 = mutual_feature_list[0]
+
+        # ---- Step 1. use Backbone to get final feature ---- #
+        x = encoding_feature3  # (bs, 512, h/8, w/8)
+        mutual_feature_out_list[3] = self.out_conv4(x)
+        x = self.up_conv3(x, encoding_feature2)  # (bs, 256, h/4, w/4)
+        mutual_info_list[2] = x
+        mutual_feature_out_list[2] = self.out_conv3(x)
+        x = self.up_conv2(x, encoding_feature1)  # (bs, 128, h/2, w/2)
+        mutual_info_list[1] = x
+        mutual_feature_out_list[1] = self.out_conv2(x)
+        x = self.up_conv1(x, encoding_feature0)  # (bs, 64, h, w)
+        mutual_info_list[0] = x
+        mutual_feature_out_list[0] = self.out_conv1(x)
+
+        mutual_evidence_list = [None] * len(mutual_feature_out_list)
+        mutual_alpha_list = [None] * len(mutual_feature_out_list)
+        mutual_uncertainty_list = [None] * len(mutual_feature_out_list)
+        for i in range(len(mutual_feature_out_list)):
+            # ---- Step 2. get mutual feature evidence ---- #
+            mutual_evidence = self.infer(mutual_feature_out_list[i])  # (bs, c, h, w)
+            # ---- Step 3. use dirichlet distribution to get alpha ---- #
+            mutual_alpha = mutual_evidence + 1  # dirichlet (bs, c, h, w)
+            # ---- Step 4. get belief and uncertainty ---- #
+            # based on the evidential theory (b_1 + b_2 + ... b_c + u = 1) #
+            S_m = torch.sum(mutual_alpha, dim=1, keepdim=True)  # must keep dim keep it as (bs, 1, h, w) not (bs, h, w)
+            mutual_belief = (mutual_alpha - 1) / (S_m.expand(mutual_alpha.shape))  # belief (bs, c, h, w) pixel-wise
+            mutual_uncertainty = self.seg_classes / S_m  # uncertainty (bs, 1, h, w) pixel-wise
+            # ---- set it ---- #
+            mutual_evidence_list[i] = mutual_evidence
+            mutual_alpha_list[i] = mutual_alpha
+            mutual_uncertainty_list[i] = mutual_uncertainty
+
+        # get eta
+        eta = (encoding_feature3, mutual_uncertainty_list[3])
+
+        return mutual_evidence_list, mutual_alpha_list, mutual_uncertainty_list, mutual_info_list, eta
+
+    def infer(self, input):
+        evidence = F.softplus(input)
+        return evidence
+
+
 # ************************************************************************************ #
 # ******************************* THE ASSISTED MODULES ******************************* #
 # ************************************************************************************ #
 class PolarizedSelfAttention(nn.Module):
     """ PSAttention algorithm in channel shuffle for PairWiseFeatureMixer,
-        use self attention mechanism.
+        use self attention mechanism, we use this as a black box.
 
         Ref. https://www.sciencedirect.com/science/article/abs/pii/S1568494622006184
 
@@ -191,8 +295,8 @@ class PolarizedSelfAttention(nn.Module):
         channel_wq = channel_wq.reshape(b, -1, 1)  # (bs, h * w, 1)
         channel_wq = self.softmax(channel_wq)  # get weight of each pixel of channels
         channel_wz = torch.matmul(channel_wv, channel_wq).unsqueeze(-1)  # (bs, c//2, 1, 1)
-        channel_weight = self.sigmoid(self.ln(self.ch_wz(channel_wz).reshape(b, c, 1).permute(0, 2, 1))) \
-            .permute(0, 2, 1).reshape(b, c, 1, 1)  # (bs, c, 1, 1)
+        channel_weight = (self.sigmoid(self.ln(self.ch_wz(channel_wz).reshape(b, c, 1).permute(0, 2, 1))).
+                          permute(0, 2, 1).reshape(b, c, 1, 1))  # (bs, c, 1, 1)
         channel_out = channel_weight * x  # Channel-only attention
 
         # ---- Spatial-only Self-Attention ---- #
