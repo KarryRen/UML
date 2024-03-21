@@ -9,13 +9,16 @@
 > ```python
 > UML/
 > ├── images # All images used in this repository.
+>   ├── UML_Framework.jpg # The Framework image.
 > ├── dataset
 >   ├── dataset_preprocess
 >     ├── ispy_preprocess.py # The preprocess code of I-SPY1 dataset.
 >     ├── refuge_preprocess.py # The preprocess code of REFUGE Glaucoma dataset.
+>     ├── isic_preprocess.py # The preprocess code of ISIC dataset. Updating 🚀.
 >   ├── ispy_dataset.py # The torch.Dataset of I-SPY1 dataset.
 >   ├── refuge_dataset.py # The torch.Dataset of Refuge dataset.
-> └── 
+>   ├── isic_dataset.py # The torch.Dataset of Refuge dataset. Updating 🚀.
+> └── config.py # The Config file, set all hyperparameters here.
 > ```
 
 
@@ -40,11 +43,25 @@ potential to explore the development of more reliable and explainable medical im
 
 ## Dataset Acquisition
 
-We use **3 Datasets** to test our UML network. You can **DOWNLOAD** the raw dataset from the following links. We also write the **Pre-Process** code, please read them carefully and follow the guidelines in the comment !
+We use **3 Datasets** to test our UML network. You can **DOWNLOAD** the raw dataset from the following links. 
 
-- **I-SPY1 Trail Dataset**. Could be downloaded from [**HERE**](https://www.kaggle.com/datasets/saarthakkapse/ispy1-trail-dataset) ! The Pre-Process code is in `ispy_preprocess.py`.
-- **Refuge Glaucoma**. Could be downloaded from [**HERE**](https://pan.baidu.com/s/1DE8a3UgwGJY85bsr4U7tdw?pwd=2023) ! T he Pre-Process code is in `refuge_preprocess.py`
-- **ISIC Challenge 2017**. Could be downloaded from [**HERE**](https://challenge.isic-archive.com/data/#2017) ! The Pre-Porcess code is updating 🚀 !
+- **I-SPY1 Trail Dataset**. Could be downloaded from [**HERE**](https://www.kaggle.com/datasets/saarthakkapse/ispy1-trail-dataset) ! 
+- **Refuge Glaucoma**. Could be downloaded from [**HERE**](https://pan.baidu.com/s/1DE8a3UgwGJY85bsr4U7tdw?pwd=2023) ! 
+- **ISIC Challenge 2017**. Could be downloaded from [**HERE**](https://challenge.isic-archive.com/data/#2017) ! 
 
 
+
+## Data Pre-Process and `torch.Dataset`
+
+After downloading the datasets following the **Dataset Acquisition**, data preprocessing is needed which is to reformat the directory structure  of datasets. We have released Pre-Process code for datasets, please read them carefully and follow the guidelines in the comment ! Also we released `torch.Dataset` code for datasets,
+
+- **I-SPY1 Trail Dataset**. 
+  - The Pre-Process code is in `ispy_preprocess.py`, HERE !
+  - The  `torch.Dataset` code is in `ispy_dataset.py`, HERE !
+- **Refuge Glaucoma**. 
+  - The Pre-Process code is in `refuge_preprocess.py` HERE !
+  - The  `torch.Dataset` code is in `refuge_dataset.py`, HERE !
+- **ISIC Challenge 2017**. 
+  - The Pre-Porcess code is updating 🚀 !
+  - The  `torch.Dataset` code is updating 🚀 !
 
