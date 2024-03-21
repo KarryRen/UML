@@ -9,6 +9,9 @@ __pycache__/
 # idea
 .idea/
 
+# pretrained_model_zoo
+pretrained_model_zoo/
+
 # C extensions
 *.so
 *.out
