@@ -11,8 +11,15 @@ Please `DOWNLOAD` Refuge dataset following `README.md`. You need unzip the `.zip
     and move all files to `REFUGE_DATASET_DOWNLOAD_PATH` to get the following directory structure:
     REFUGE_DATASET_DOWNLOAD_PATH/
         ├── Train
+            ├── Train400 (unzip from `Training400.zip`) Please
+            └── Train400-GT (unzip from `Annotation-Training400.zip`)
         ├── Valid
+            ├── Valid400 (unzip from `REFUGE-Validation400.zip`)
+            └── Valid400-GT (unzip from `REFUGE-Validation400-GT.zip`)
         └── Test
+            ├── Test400 (unzip from `Test400.zip`)
+            └── Test400-GT  (unzip from `REFUGE-Test-GT.zip`)
+    please format the directory structure to be same !!!
 
 Then you need to create the following directory structure `BY HAND`:
     REFUGE_DATASET_PROCESS_PATH/
@@ -60,122 +67,53 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import nibabel as nib
+import cv2
 
-# set the ISPY dataset path, the PATH is depended on your situation
+# set the Refuge dataset path, the PATH is depended on your situation
 # (we suggest you set the absolut path)
-ISPY_DATASET_DOWNLOAD_PATH = "/Users/karry/KarryRen/Scientific-Projects/2023-UML/Code/Data/I-SPY1/ISPY_Download"
-ISPY_DATASET_PROCESS_PATH = "/Users/karry/KarryRen/Scientific-Projects/2023-UML/Code/Data/I-SPY1/ISPY_Dataset"
+REFUGE_DATASET_DOWNLOAD_PATH = "/Users/karry/KarryRen/Scientific-Projects/2023-UML/Code/Data/Refuge/Refuge_Download"
+REFUGE_DATASET_PROCESS_PATH = "/Users/karry/KarryRen/Scientific-Projects/2023-UML/Code/Data/Refuge/Refuge_Dataset"
 
-# set the hyper-param `KEEP_SLICE_NUM`
-# (we suggest you only keep 10 slices for each case)
-KEEP_SLICE_NUM = 10
+# set the hyper-param `IMAGE_SIZE`
+# (we suggest you set the 256x256 image_size)
+IMAGE_SIZE = 256
 
 # begin pre-process
-print(f"===================== I-SPY1 Begin Pre-Process =====================")
+print(f"===================== Refuge Begin Pre-Process =====================")
 
-# ---- Step 1. Read the `SUBJECTID` and `PCR` from the `outcome_new.xlsx` ---- #
-id_pcr0_tuple_list = []  # define the id and pcr(label=0) tuple empty list
-id_pcr1_tuple_list = []  # define the id and pcr(label=1) tuple empty list
-outcome_new_file_path = f"{ISPY_DATASET_DOWNLOAD_PATH}/outcome_new.xlsx"
-outcome_new_df = pd.read_excel(outcome_new_file_path)
-for row_idx, id_pcr_row in outcome_new_df.iterrows():
-    id_pcr_tuple = (id_pcr_row["SUBJECTID"], id_pcr_row["PCR"])
-    if id_pcr_row["PCR"] == 0:
-        id_pcr0_tuple_list.append(id_pcr_tuple)
-    elif id_pcr_row["PCR"] == 1:
-        id_pcr1_tuple_list.append(id_pcr_tuple)
-    else:
-        raise TypeError(id_pcr_row["PCR"])
-print(f"All PCR : 0-{len(id_pcr0_tuple_list)} cases, 1-{len(id_pcr1_tuple_list)} cases.")
-
-# ---- Step 2. Split the train, valid and test ID ---- #
-# Totally: 157 (114-pcr0, 43-pcr1) cases.
-# Train: 127 (92-pcr0,  35-pcr1) cases;
-# Valid: 15 (11-pcr0, 4-pcr1) cases;
-# Test: 15 (11-pcr0, 4-pcr1) cases.
-train_id_pcr_tuple_list = id_pcr0_tuple_list[:92] + id_pcr1_tuple_list[:35]
-valid_id_pcr_tuple_list = id_pcr0_tuple_list[92:103] + id_pcr1_tuple_list[35:39]
-test_id_pcr_tuple_list = id_pcr0_tuple_list[103:] + id_pcr1_tuple_list[39:]
-print(f"Split: "
-      f"Train-{len(train_id_pcr_tuple_list)} cases, "
-      f"Valid-{len(valid_id_pcr_tuple_list)} cases, "
-      f"Test-{len(test_id_pcr_tuple_list)} cases.")
-
-# ---- Step 3. For-loop the id_pcr_tuple list and store .nii to .jpg images ---- #
+# ---- For-loop the data_type and resize each image&mask ---- #
 for data_type in ["Train", "Valid", "Test"]:
-    # get which id_pcr_tuple_list to read
     print(f"============ {data_type} =============")
-    if data_type == "Train":
-        id_pcr_tuple_list = train_id_pcr_tuple_list
-    elif data_type == "Valid":
-        id_pcr_tuple_list = valid_id_pcr_tuple_list
-    elif data_type == "Test":
-        id_pcr_tuple_list = test_id_pcr_tuple_list
-    else:
-        raise TypeError(data_type)
-    # for loop the id_pcr_tuple_list
-    for id_pcr_tuple in id_pcr_tuple_list:
-        print(id_pcr_tuple)
-        # get the subject id nad pcr
-        sub_id = id_pcr_tuple[0]
-        pcr = id_pcr_tuple[1]
-        # construct the image and mask path
-        image_path = f"{ISPY_DATASET_DOWNLOAD_PATH}/Dataset ISPY/ISPY_{sub_id}/DCEMRI_1.nii"
-        mask_path = f"{ISPY_DATASET_DOWNLOAD_PATH}/Tumor_segmentation_new/ISPY_{sub_id}_tumor_mask.nii"
-        # read the .nii image and mask
-        image = nib.load(image_path)
-        mask = nib.load(mask_path)
-        # get the data and transform
-        img_data = image.get_fdata()
-        msk_data = mask.get_fdata()
-        img_data = np.rot90(img_data, 1)
-        img_data = np.flip(img_data, axis=0)
-        msk_data = np.rot90(msk_data, 1)
-        msk_data = np.flip(msk_data, axis=0)
-        # assert shape equal
-        assert img_data.shape == msk_data.shape, "img.shape != msk.shape, data ERROR !!"
-        # make the case directories
-        case_image_path = f"{ISPY_DATASET_PROCESS_PATH}/{data_type}/images/ispy_{sub_id}"
-        case_mask_path = f"{ISPY_DATASET_PROCESS_PATH}/{data_type}/masks/ispy_{sub_id}"
-        if not os.path.exists(case_image_path):
-            os.makedirs(case_image_path)
-        if not os.path.exists(case_mask_path):
-            os.makedirs(case_mask_path)
-        # compute max mask idx and get the start idx
-        msk_sum = msk_data.sum(axis=(0, 1))
-        msk_sum_idx = msk_sum.argmax()
-        # for-loop the mask data slices
-        slice_num = 0  # note the save slice num
-        for slices in range(msk_sum_idx - KEEP_SLICE_NUM // 2, msk_data.shape[-1]):
-            # just get the msk not all ground slices
-            if not msk_data[:, :, slices].sum() == 0:
-                # construct the process path
-                process_image_path = f"{case_image_path}/ispy_{sub_id}_{pcr}_s{slices}_img.jpg"
-                process_mask_path = f"{case_mask_path}/ispy_{sub_id}_{pcr}_s{slices}_msk.jpg"
-                # save the image and mask
-                plt.imsave(process_image_path, img_data[:, :, slices], cmap="gray")
-                plt.imsave(process_mask_path, msk_data[:, :, slices], cmap="gray")
-                slice_num += 1
-            # just save KEEP_SLICE_NUM slices
-            if slice_num == KEEP_SLICE_NUM:
-                break
-        # append data
-        if slice_num < KEEP_SLICE_NUM:
-            # just get the msk not all ground slices
-            for ni in range(1, KEEP_SLICE_NUM):
-                slices = msk_sum_idx - KEEP_SLICE_NUM // 2 - ni
-                if not msk_data[:, :, slices].sum() == 0:
-                    # construct the process path
-                    process_image_path = f"{case_image_path}/ispy_{sub_id}_{pcr}_s{slices}_img.jpg"
-                    process_mask_path = f"{case_mask_path}/ispy_{sub_id}_{pcr}_s{slices}_msk.jpg"
-                    # save the image and mask
-                    plt.imsave(process_image_path, img_data[:, :, slices], cmap="gray")
-                    plt.imsave(process_mask_path, msk_data[:, :, slices], cmap="gray")
-                    slice_num += 1
-                # just save KEEP_SLICE_NUM slices
-                if slice_num == KEEP_SLICE_NUM:
-                    break
-        assert slice_num == KEEP_SLICE_NUM, "Slice num WRONG !!"
 
-print(f"===================== I-SPY1 Pre-Process Over ! =====================")
+    # construct the image and mask root path
+    image_root_path = f"{REFUGE_DATASET_DOWNLOAD_PATH}/{data_type}/{data_type}400"
+    mask_root_path = f"{REFUGE_DATASET_DOWNLOAD_PATH}/{data_type}/{data_type}400-GT/Disc_Cup_Masks"
+    # construct the target path
+    image_process_root_path = f"{REFUGE_DATASET_PROCESS_PATH}/{data_type}/images"
+    mask_process_root_path = f"{REFUGE_DATASET_PROCESS_PATH}/{data_type}/masks"
+    # read the `Glaucoma_label_and_Fovea_location.xlsx` (please rename the `.xlsx` file in train and valid)
+    label_df = pd.read_excel(f"{REFUGE_DATASET_DOWNLOAD_PATH}/{data_type}/{data_type}400-GT/"
+                             f"Glaucoma_label_and_Fovea_location.xlsx")
+    # for loop to process data
+    for row_idx, label_df_row in label_df.iterrows():
+        # get the id and label
+        refuge_id = label_df_row["ImgName"].split(".")[0]
+        refuge_label = label_df_row["Glaucoma Label"]
+        print(f"Refuge ID: {refuge_id}, Refuge Label: {refuge_label}.")
+        # construct the image&mask file
+        image_file_path = f"{image_root_path}/{refuge_id}.jpg"
+        mask_file_path = f"{mask_root_path}/{refuge_id}.bmp"
+        # set the target file path
+        image_process_path = f"{image_process_root_path}/{refuge_id}_{refuge_label}_img.jpg"
+        mask_process_path = f"{mask_process_root_path}/{refuge_id}_{refuge_label}_msk.bmp"
+        # read the image&mask data and resize the data
+        image = cv2.imread(image_file_path)
+        mask = cv2.imread(mask_file_path)
+        # resize the image&mask
+        resized_image = cv2.resize(image, (IMAGE_SIZE, IMAGE_SIZE))
+        resized_mask = cv2.resize(mask, (IMAGE_SIZE, IMAGE_SIZE))
+        # stored the pre-processed new image
+        cv2.imwrite(image_process_path, resized_image)
+        cv2.imwrite(mask_process_path, resized_mask)
+
+print(f"===================== Refuge Pre-Process Over ! =====================")

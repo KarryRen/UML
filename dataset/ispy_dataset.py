@@ -35,7 +35,7 @@ After the preprocessing raw I-SPY1 dataset (download from web) by
 
 In this dataset:
     - during `__init__()`, we will LOAD all images and masks file path.
-    - during `__getitem__()`, we will READ 1 images and masks and label to memory.
+    - during `__getitem__()`, we will READ 1 image and mask and label to memory.
 
 """
 
@@ -93,6 +93,7 @@ class JointIspyDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         """ Get the length of dataset. """
+
         return len(self.images_file_path_list)
 
     def __getitem__(self, idx: int):
@@ -102,7 +103,11 @@ class JointIspyDataset(torch.utils.data.Dataset):
 
         return: a dict with the format:
             {
-                "image": the image array, shape=(128, 128)
+                "image": the image array, shape=(3, 128, 128)
+                "cls_label": the label for classification, shape=(1,)
+                "seg_gt": the ground truth for segmentation, shape=(1, 128, 128)
+                    only have 0 and 1, 0-gd and 1-tumor
+                "item_name": a str
             }
         """
 
@@ -122,7 +127,7 @@ class JointIspyDataset(torch.utils.data.Dataset):
         assert (0.0 <= image).all() and (image <= 1.0).all(), "image value ERROR !!!"
         # - label for classification task
         cls_label = np.array([int(image_name.split("_")[2])])  # shape=(1,)
-        # - gt for segmentation task
+        # - gt for segmentation task, and make it 0-gd, 1-tumor
         seg_gt = plt.imread(self.masks_file_path_list[idx])[:, :, 0]  # shape=(h, w)
         seg_gt = (seg_gt >= 50).astype(np.int8)  # avoid not 0 or 1
         # - the item name, just be the image name
@@ -144,6 +149,14 @@ if __name__ == "__main__":  # a demo using JointIspyDataset
 
     ispy_dataset = JointIspyDataset(root_path=ISPY_DATASET_PATH, data_type="Test")
 
-    for i in range(len(ispy_dataset)):
-        print(ispy_dataset[i]["image"].max(), ispy_dataset[i]["image"].min())
-        print(ispy_dataset[i]["seg_gt"].sum())
+    # show the image
+    print(ispy_dataset[1]["item_name"])
+    plt.subplot(1, 2, 1)
+    plt.imshow(ispy_dataset[1]["image"].transpose(1, 2, 0))
+    plt.subplot(1, 2, 2)
+    plt.imshow(ispy_dataset[1]["seg_gt"])
+    plt.show()
+
+    # for i in range(len(ispy_dataset)):
+    #     print(ispy_dataset[i]["image"].max(), ispy_dataset[i]["image"].min())
+    #     print(ispy_dataset[i]["seg_gt"].sum())
