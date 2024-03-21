@@ -3,10 +3,9 @@
 > This repository provides the code for our accepted **MICCAI2023 paper** "Uncertainty-Informed Mutual Learning for
 > Joint Medical Image Classification and Segmentation". 
 > 
-> Official implementation: [**UML**](https://link.springer.com/chapter/10.1007/978-3-031-43901-8_4). 
-> The structure of this repository is as follows:
->
-> ```python
+> Official implementation: [**UML**](https://link.springer.com/chapter/10.1007/978-3-031-43901-8_4). The structure of this repository is as follows:
+> 
+>```python
 > UML/
 > ├── images # All images used in this repository.
 >     ├── UML_Framework.jpg # The Framework image.
@@ -14,10 +13,10 @@
 >     ├── datasets_preprocess
 >         ├── ispy_preprocess.py # The preprocess code of I-SPY1 dataset.
 >         ├── refuge_preprocess.py # The preprocess code of REFUGE Glaucoma dataset.
->         └── isic_preprocess.py # The preprocess code of ISIC dataset. Updating 🚀.
+>         └── isic_preprocess.py # The preprocess code of ISIC dataset. Updating 🔥.
 >     ├── ispy_dataset.py # The torch.Dataset of I-SPY1 dataset.
 >     ├── refuge_dataset.py # The torch.Dataset of Refuge dataset.
->     └── isic_dataset.py # The torch.Dataset of Refuge dataset. Updating 🚀.
+>     └── isic_dataset.py # The torch.Dataset of Refuge dataset. Updating 🔥.
 > ├── models
 > └── config.py # The Config file, set all hyperparameters here.
 > ```
@@ -63,10 +62,12 @@ After downloading the datasets following the **Dataset Acquisition**, data prepr
   - The Pre-Process code is in `refuge_preprocess.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/dataset_preprocess/refuge_preprocess.py) !
   - The  `torch.Dataset` code is in `refuge_dataset.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/refuge_dataset.py) !
 - **ISIC Challenge 2017**. 
-  - The Pre-Porcess code is updating 🚀 !
-  - The  `torch.Dataset` code is updating 🚀 !
+  - The Pre-Process code is updating 🔥 !
+  - The  `torch.Dataset` code is updating 🔥 !
 
 
+
+## Training & Prediction
 
 
 
