@@ -107,6 +107,7 @@ class JointRefugeDataset(torch.utils.data.Dataset):
         seg_gt[seg_gt < 10] = 2
         seg_gt[(seg_gt >= 10) & (seg_gt <= 245)] = 1
         seg_gt[seg_gt > 245] = 0
+        seg_gt = seg_gt.reshape(1, seg_gt.shape[0], seg_gt.shape[1])
         # - the item name, just be the image name
         item_name = image_name
 
@@ -131,10 +132,10 @@ if __name__ == "__main__":  # a demo using JointRefugeDataset
     plt.subplot(1, 2, 1)
     plt.imshow(refuge_dataset[1]["image"].transpose(1, 2, 0))
     plt.subplot(1, 2, 2)
-    plt.imshow(refuge_dataset[1]["seg_gt"])
+    plt.imshow(refuge_dataset[1]["seg_gt"].transpose(1, 2, 0))
     plt.show()
 
     for i in range(len(refuge_dataset)):
         print(refuge_dataset[i]["image"].max(), refuge_dataset[i]["image"].min())
-        print(refuge_dataset[i]["seg_gt"].sum())
+        print(refuge_dataset[i]["seg_gt"].shape)
         print(refuge_dataset[i]["cls_label"])

@@ -34,10 +34,10 @@ from typing import Optional
 import torch
 import torch.nn as nn
 
-from model_lib.res2net import res2net50_v1b_26w_4s
-from modules import PairWiseFeatureMixer, MutualFeatureDecoder
-from modules import UNSegDecoder
-from modules import UNClsDecoder
+from models.model_lib.res2net import res2net50_v1b_26w_4s
+from models.modules import PairWiseFeatureMixer, MutualFeatureDecoder
+from models.modules import UNSegDecoder
+from models.modules import UNClsDecoder
 
 
 class UML_Net(nn.Module):

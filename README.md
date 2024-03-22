@@ -21,8 +21,12 @@
 >     ├── uml_net.py # The Uncertainty Mutual Leaning Neural Network.
 >     ├── modules.py # The modules for UML_Net.
 >     └── model_lib 
+>         ├── pretrained_model_zoo # We suggest you download the pretrained model to this path.
 >         └── res2net.py # The pre-trained Res2Net module.
-> └── config.py # The Config file, set all hyperparameters here.
+> ├── exp_refuge 
+>     ├── train_uml_refuge.py # The UML_Net training code of Refuge Dataset.
+>     ├── config_refuge.py # The config file of Refuge Dataset.
+> └── utils.py # The util functions.
 > ```
 
 
@@ -60,10 +64,10 @@ We use **3 Datasets** to test our UML network. You can **DOWNLOAD** the raw data
 After downloading the datasets following the **Dataset Acquisition**, data preprocessing is needed which is to reformat the directory structure  of datasets. We have released Pre-Process code for datasets, please read them carefully and follow the guidelines in the comment ! Also we released `torch.Dataset` code for datasets,
 
 - **I-SPY1 Trail Dataset**. 
-  - The Pre-Process code is in `ispy_preprocess.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/dataset_preprocess/ispy_preprocess.py) !
-  - The  `torch.Dataset` code is in `ispy_dataset.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/ispy_dataset.py) !
+  - The Pre-Process code is in `ispy_preprocess.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/dataset_preprocess/ispy_preprocess.py) ! You can **RUN** it using `python3 ispy_preprocess.py`
+  - The  `torch.Dataset` code is in `ispy_dataset.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/ispy_dataset.py) ! 
 - **Refuge Glaucoma**. 
-  - The Pre-Process code is in `refuge_preprocess.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/dataset_preprocess/refuge_preprocess.py) !
+  - The Pre-Process code is in `refuge_preprocess.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/dataset_preprocess/refuge_preprocess.py) ! You can **RUN** it using `python3 refuge_preprocess.py`
   - The  `torch.Dataset` code is in `refuge_dataset.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/refuge_dataset.py) !
 - **ISIC Challenge 2017**. 
   - The Pre-Process code is updating 🔥 !
@@ -75,9 +79,15 @@ After downloading the datasets following the **Dataset Acquisition**, data prepr
 
 ### Pretrained Models
 
-We use a the Pretrained [**Res2Net**](https://github.com/Res2Net/Res2Net-PretrainedModels?tab=readme-ov-file): **Res2Net-50-26w-4s**, you can download the `.pth` file from [**HERE**]((https://onedrive.live.com/redir?resid=4F84AEAD730E434C!116&authkey=!AOTqhF8ne_aakDI&e=EVb8Ri)) ! The path of this `.pth` file is an important [**parameter**](https://github.com/KarryRen/UML/blob/main/models/uml_net.py#L34) in the `__init__()` function of `UML_Net`.
+We use a Pretrained [**Res2Net**](https://github.com/Res2Net/Res2Net-PretrainedModels?tab=readme-ov-file): **Res2Net-50-26w-4s**, you can download the `.pth` file from [**HERE**]((https://onedrive.live.com/redir?resid=4F84AEAD730E434C!116&authkey=!AOTqhF8ne_aakDI&e=EVb8Ri)) ! The path of this `.pth` file is an important [**parameter**](https://github.com/KarryRen/UML/blob/main/models/uml_net.py#L34) in the `__init__()` function of `UML_Net`.
 
+### Train
 
+There are too many **differences** between the different datasets, so we built separate training and prediction code for each one to run:
+
+- **I-SPY1 Trail Dataset**.
+- **Refuge Glaucoma**.
+  - The Training code is in `train_uml_refuge.py`, [**HERE**]() !
 
 
 

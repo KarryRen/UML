@@ -2,15 +2,14 @@
 # @Time    : 2023/3/20 16:49
 # @Author  : Karry Ren
 
-""" Config file. Set all hyperparameters here. """
+""" Config file of Refuge Dataset. Set all hyperparameters here. """
 
 # ************************************************************************************ #
-# ******************************** FOR I-SPY1 DATASET ******************************** #
+# ************************************ GPU SETTINGS ********************************** #
 # ************************************************************************************ #
 
 # ---- ENVIRONMENT ---- #
-GPU_NUM_NETFINAL_BREAST = '1, 2'
-GPU_NUM_NETFINAL_REFUGE = '1'  # only mut '0, 1' ||  + ug : 0, 1 || final '0, 1, 2, 3'
+GPU_ID = '1, 2'
 
 # ---- data ---- #
 # - Breast
