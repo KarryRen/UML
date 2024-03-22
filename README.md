@@ -20,9 +20,12 @@
 > ├── models
 >     ├── uml_net.py # The Uncertainty Mutual Leaning Neural Network.
 >     ├── modules.py # The modules for UML_Net.
->     └── model_lib 
+>     ├── model_lib 
 >         ├── pretrained_model_zoo # We suggest you download the pretrained model to this path.
 >         └── res2net.py # The pre-trained Res2Net module.
+>     ├── loss
+>         ├── cls_loss.py # The loss function for classification.
+>         ├── seg_loss.py # The loss function for segmentation.
 > ├── exp_refuge 
 >     ├── train_uml_refuge.py # The UML_Net training code of Refuge Dataset.
 >     ├── config_refuge.py # The config file of Refuge Dataset.
