@@ -23,26 +23,28 @@ import torch
 import torch.nn as nn
 
 from model_lib.res2net import res2net50_v1b_26w_4s
-from modules import PairWiseFeatureMixer
+from modules import PairWiseFeatureMixer, MutualFeatureDecoder
 
 
 class UML_Net(nn.Module):
     """ Uncertainty Mutual Learning Neural Network. """
 
-    def __init__(self, pretrained_res2net_path: Optional[str]):
+    def __init__(self, pretrained_res2net_path: Optional[str], seg_class: int):
         """ Init function of UML_Net. Here we will build up all modules which
             can be divided into 3 parts:
                 - Part 1. The two pretrained feature encoders for cls and seg (both are Res2Net).
                 - Part 2. The mutual feature mixer and decoder.
 
         :param pretrained_res2net_path: the pretrained Res2Net path
+        :param seg_class: the total class of segmentation
 
         """
 
         super(UML_Net, self).__init__()
 
-        # ---- Part 2. The mutual feature mixer ---- #
+        # ---- Part 2. The mutual feature mixer and decoder ---- #
         self.mut_feature_mixer = PairWiseFeatureMixer()  # the mutual feature mixer
+        self.mut_feature_decoder = MutualFeatureDecoder(seg_class=seg_class)
 
         # - init_params
         for m in self.modules():
@@ -62,6 +64,24 @@ class UML_Net(nn.Module):
 
         :param x: the input image (bs, c, h, w)
 
+        The detail process is as follows:
+            Step 1. Feature Encoding to get `cls_feature_list` and `seg_feature_list`
+                Because the encoders of classification and segmentation are both Res2Net. The feature_list
+                  of classification and segmentation have the same shape items:
+                    - item_0, shape=(bs, 64, h, w)
+                    - item_1, shape=(bs, 256, h/2, w/2)
+                    - item_2, shape=(bs, 521, h/4, w/4)
+                    - item_3, shape=(bs, 1024, h/8, w/8)
+            Step 2. Mutual Feature Mixing and Decoding to get the `mut_feature_list` and `decoding_features`.
+                The `mut_feature_list`  has the same shape items with cls and seg feature list.
+                The `decoding_features` include:
+                  - mut_evidence_list: 4 layer mutual evidence (bs, seg_class, h/2^{i-1}, w/2^{i-1})
+                  - mut_alpha_list: 4 layer mutual alpha (bs, seg_class, h/2^{i-1}, w/2^{i-1})
+                  - mut_uncertainty_list: 4 layer mutual alpha (bs, 1, h/2^{i-1}, w/2^{i-1})
+                  - mut_info_list: [(bs, 64, h, w), (bs, 128, h/2, w/2), (bs, 256, h/4, w/4)]
+
+
+
         returns:
             cls_alpha: (bs, cls_cls)
             cls_uncertainty: (bs, 1)
@@ -79,6 +99,8 @@ class UML_Net(nn.Module):
 
         # ---- Step 2. Mutual Feature Mixing and Decoding ---- #
         mut_feature_list = self.mut_feature_mixer(cls_feature_list, seg_feature_list)
+        (mut_evidence_list, mut_alpha_list, mut_uncertainty_list,
+         mut_info_list, eta_for_cls) = self.mut_feature_decoder(mut_feature_list)
 
         return None
 
@@ -86,7 +108,7 @@ class UML_Net(nn.Module):
 if __name__ == "__main__":  # A demo using UML_Net
 
     # ---- Step 1. Build the UML_Net ---- #
-    model = UML_Net(pretrained_res2net_path=None)
+    model = UML_Net(pretrained_res2net_path=None, seg_class=3)
 
     # ---- Step 2. Compute the total params ---- #
     total_param = sum([param.nelement() for param in model.parameters()])
