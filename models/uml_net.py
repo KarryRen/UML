@@ -16,6 +16,9 @@ You might have some questions about our Network:
           more accurate and robust, so we choose Res2Net as the backbone for both cls and seg feature encoding !
           They have the same structure while not sharing the params.
 
+    2. The eta is changed ?
+        Yes the eta is from mutual features rather than segmentation features to classification.
+
 """
 
 from typing import Optional
@@ -44,7 +47,12 @@ class UML_Net(nn.Module):
 
         # ---- Part 2. The mutual feature mixer and decoder ---- #
         self.mut_feature_mixer = PairWiseFeatureMixer()  # the mutual feature mixer
-        self.mut_feature_decoder = MutualFeatureDecoder(seg_class=seg_class)
+        self.mut_feature_decoder = MutualFeatureDecoder(seg_class=seg_class)  # the mutual feature decoder
+        self.mut_up_sample_dict = nn.ModuleDict({
+            "2": nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True),
+            "4": nn.Upsample(scale_factor=4, mode="bilinear", align_corners=True),
+            "8": nn.Upsample(scale_factor=8, mode="bilinear", align_corners=True)
+        })  # the up_sample dict for mutual result, must use nn.Dict or backward wrong !
 
         # - init_params
         for m in self.modules():
@@ -79,8 +87,10 @@ class UML_Net(nn.Module):
                   - mut_alpha_list: 4 layer mutual alpha (bs, seg_class, h/2^{i-1}, w/2^{i-1})
                   - mut_uncertainty_list: 4 layer mutual alpha (bs, 1, h/2^{i-1}, w/2^{i-1})
                   - mut_info_list: [(bs, 64, h, w), (bs, 128, h/2, w/2), (bs, 256, h/4, w/4)]
-
-
+                For the deep supervision, we need to do the UpSampling to get:
+                  - mut_evidence_list: 4 layer mutual evidence (bs, seg_class, h, w)
+                  - mut_alpha_list: 4 layer mutual alpha (bs, seg_class, h, w)
+                  - mut_uncertainty_list: 4 layer mutual alpha (bs, 1, h, w)
 
         returns:
             cls_alpha: (bs, cls_cls)
@@ -97,10 +107,14 @@ class UML_Net(nn.Module):
         cls_feature_list = self.cls_feature_encoder(x)
         seg_feature_list = self.seg_feature_encoder(x)
 
-        # ---- Step 2. Mutual Feature Mixing and Decoding ---- #
+        # ---- Step 2. Mutual Feature Mixing & Decoding and UpSample for deep Supervision ---- #
         mut_feature_list = self.mut_feature_mixer(cls_feature_list, seg_feature_list)
         (mut_evidence_list, mut_alpha_list, mut_uncertainty_list,
          mut_info_list, eta_for_cls) = self.mut_feature_decoder(mut_feature_list)
+        for i in range(1, len(mut_evidence_list)):  # layer 2 to 4
+            mut_evidence_list[i] = self.mut_up_sample_dict[str(2 ** i)](mut_evidence_list[i])
+            mut_alpha_list[i] = self.mut_up_sample_dict[str(2 ** i)](mut_alpha_list[i])
+            mut_uncertainty_list[i] = self.mut_up_sample_dict[str(2 ** i)](mut_uncertainty_list[i])
 
         return None
 
