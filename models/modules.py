@@ -254,10 +254,7 @@ class MutualFeatureDecoder(nn.Module):
             mut_alpha_list[i] = mut_alpha
             mut_uncertainty_list[i] = mut_uncertainty
 
-        # ---- Step 4. Generate eta for classification ---- #
-        eta_for_cls = (encoding_feature4, mut_uncertainty_list[3])
-
-        return mut_evidence_list, mut_alpha_list, mut_uncertainty_list, mut_info_list, eta_for_cls
+        return mut_evidence_list, mut_alpha_list, mut_uncertainty_list, mut_info_list
 
     def infer(self, x: torch.Tensor):
         """ Infer function of dirichlet distribution.
@@ -327,6 +324,7 @@ class UNSegDecoder(nn.Module):
 
         returns:
             - final_seg: the final segmentation, shape=(bs, seg_class, h, w)
+            - eta_for_cls: the eta to guide the UI for classification, shape=(bs, seg_class, h/8, w/8)
 
         """
 
@@ -357,12 +355,15 @@ class UNSegDecoder(nn.Module):
 
         # ---- Step 3. Generate the final segmentation ---- #
         final_seg = self.conv_out(feature)  # (bs, seg_class, h, w)
-        return final_seg
+
+        # ---- Step 4. Generate the eat_for_cls ---- #
+        eta_for_cls = self.down8(feature)  # (bs, 64, h/8, w/8)
+        return final_seg, eta_for_cls
 
 
-class UNClsDecoder(nn.Module):
-    """ The UN guided Classification decoder, which generates the final classification result
-        and image-wise uncertainty.
+class UIClsDecoder(nn.Module):
+    """ The Uncertainty Instructor guided Classification decoder, which generates the
+        final classification result and image-wise uncertainty.
 
     """
 
@@ -374,13 +375,11 @@ class UNClsDecoder(nn.Module):
 
         """
 
-        super(UNClsDecoder, self).__init__()
+        super(UIClsDecoder, self).__init__()
         self.classes = cls_class
 
-        # the UN for classification
-        self.un = UncertaintyNavigator(in_channels=1024, init_channels=512)
         # the reliable conv
-        self.conv_reliable = DoubleConv2d(in_channels=512, out_channels=1024)
+        self.conv_reliable = DoubleConv2d(in_channels=64, out_channels=1024)
         # the cls_head to extract cls_feature
         self.cls_head = nn.Sequential(
             SeparableConv2d(1024, 1024, 3, dilation=2, stride=1, padding=2, bias=False),
@@ -409,9 +408,7 @@ class UNClsDecoder(nn.Module):
         """ Forward function of UNClsDecoder.
 
         :param cls_feature: the bottom feature of `cls_feature_list`
-        :param eta_for_cls: the eta from mut_feature_decoder
-            0- bottom_mutual_feature, shape=(bs, 512, h/8, w/8)
-            1- bottom_mutual_uncertainty, shape=(bs, 1, h/8, w/8)
+        :param eta_for_cls: the eta from UNSegDecoder, shape=(bs, 64, h/8, w/8)
 
         returns:
             - cls_alpha: the final classification result, shape=(bs, cls_class)
@@ -423,15 +420,14 @@ class UNClsDecoder(nn.Module):
         bs, c, h, w = cls_feature.size()
         cls_feats = self.cls_head(cls_feature)
 
-        # ---- Step 2. Use un to get eta ---- #
-        eta = self.un(cls_feats, eta_for_cls[0], eta_for_cls[1], 2)
+        # ---- Step 2. Extract the eat_for_cls feature ---- #
+        eta_for_cls = self.conv_reliable(eta_for_cls)  # adjust the channels of eta
 
         # ---- Step 3. Use the eta to strength cls_feature ---- #
         # get the reliable feature by multiply
-        cls_reliable_feature_raw = cls_feats * eta
-        # add to strength
+        cls_reliable_feature_raw = cls_feats * eta_for_cls
+        # add attention to strength
         cls_feats_reliable = cls_feats + cls_reliable_feature_raw
-        cls_feats = cls_feats_reliable
 
         # ---- Step 4. Do the classification prediction ---- #
         cls_feats_reliable = self.avg_pool(cls_feats_reliable)

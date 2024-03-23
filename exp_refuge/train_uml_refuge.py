@@ -47,14 +47,14 @@ train_loader = data.DataLoader(JointRefugeDataset(root_path=config.REFUGE_ROOT_P
 valid_loader = data.DataLoader(JointRefugeDataset(root_path=config.REFUGE_ROOT_PATH, data_type="Valid"),
                                batch_size=1, shuffle=False)  # valid dataloader
 train_t_loader = data.DataLoader(JointRefugeDataset(root_path=config.REFUGE_ROOT_PATH, data_type="Train"),
-                                     batch_size=1, shuffle=False)  # 1 batch size train loader for testing
+                                 batch_size=1, shuffle=False)  # 1 batch size train loader for testing
 print_log(f"************ Train image num: {len(train_t_loader)} ************", logfile)
 print_log(f"************ Valid image num: {len(valid_loader)} ************", logfile)
 
 # ---- Construct the NetWork, Optimizer and Empty Loss-List --- #
 model = UML_Net(pretrained_res2net_path=config.PRETRAINED_RES2NET_PATH,
                 seg_class=config.SEG_CLASS, cls_class=config.CLS_CLASS)
-model = torch.nn.DataParallel(model).cuda()  # make the model parallel to cuda
+model = torch.nn.DataParallel(model)  # make the model parallel to cuda
 optimizer = torch.optim.Adam(model.parameters(), lr=config.LEARNING_RATE, weight_decay=config.WEIGHT_DECAY)
 sum_loss_list_all_epoch, cls_loss_list_all_epoch, seg_loss_list_all_epoch, mut_loss_list_all_epoch = [], [], [], []
 epoch_valid_metric = []
@@ -72,9 +72,9 @@ for epoch in range(config.EPOCH):
         # compute the training step
         step = (config.TRAIN_NUM / config.BATCH_SIZE) * epoch + i_iter
         # get the data
-        images = batch_data["image"].cuda().to(dtype=torch.float32)  # images, shape=(bs, 3, h, w)
-        cls_labels = batch_data["cls_label"].cuda().to(dtype=torch.int64)  # cls_labels, shape=(bs, 1)
-        seg_gts = batch_data["seg_gt"].cuda().to(dtype=torch.int64)  # seg_gts, shape=(bs, 1, h, w)
+        images = batch_data["image"].to(dtype=torch.float32)  # images, shape=(bs, 3, h, w)
+        cls_labels = batch_data["cls_label"].to(dtype=torch.int64)  # cls_labels, shape=(bs, 1)
+        seg_gts = batch_data["seg_gt"].to(dtype=torch.int64)  # seg_gts, shape=(bs, 1, h, w)
         # train
         optimizer.zero_grad()  # zero the optimizer grad
         adjust_lr(optimizer=optimizer, base_lr=config.LEARNING_RATE, step=step, epoch=epoch,

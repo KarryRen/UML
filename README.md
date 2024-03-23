@@ -90,7 +90,12 @@ There are too many **differences** between the different datasets, so we built s
 
 - **I-SPY1 Trail Dataset**.
 - **Refuge Glaucoma**.
-  - The Training code is in `train_uml_refuge.py`, [**HERE**]() !
+  - The training code is in `train_uml_refuge.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/exp_refuge/train_uml_refuge.py) ! You can **RUN** it using `python3 train_uml_refuge.py`
+- **ISIC Challenge 2017**. 
+  - Updating 🔥 !
+
+
+
 
 
 

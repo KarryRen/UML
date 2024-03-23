@@ -23,10 +23,8 @@ You might have some questions about our Network:
         Yes, each feature list used for each task.
 
     4. UN is changed ?
-        Yes, we use a new Attention-U structure to put the mutual info and uncertainty to segmentation feature.
-
-    5. No UI ?
-        Yes, we adjust the UN to guide classification using the mutual uncertainty and have more constance.
+        Yes, we use a new Attention-U structure rather than the concat operation to put the mutual info and uncertainty
+          to segmentation feature.
 
 """
 
@@ -37,7 +35,7 @@ import torch.nn as nn
 from models.model_lib.res2net import res2net50_v1b_26w_4s
 from models.modules import PairWiseFeatureMixer, MutualFeatureDecoder
 from models.modules import UNSegDecoder
-from models.modules import UNClsDecoder
+from models.modules import UIClsDecoder
 
 
 class UML_Net(nn.Module):
@@ -71,7 +69,7 @@ class UML_Net(nn.Module):
         self.un_seg_decoder = UNSegDecoder(seg_class=seg_class)
 
         # ---- Part 4. The un_cls_decoder ---- #
-        self.un_cls_decoder = UNClsDecoder(cls_class=cls_class)
+        self.un_cls_decoder = UIClsDecoder(cls_class=cls_class)
 
         # ---- Init the params of all modules ---- #
         for m in self.modules():
@@ -110,15 +108,13 @@ class UML_Net(nn.Module):
                     ~ item_1, shape=(bs, 128, h/2, w/2)
                     ~ item_2, shape=(bs, 256, h/4, w/4)
                     ~ item_3, shape=(bs, 512, h/8, w/8)
-                  - eta_for_cls, a tuple (bottom_mutual_feature, bottom_mutual_uncertainty)
-                    ~ bottom_mutual_feature, shape=(bs, 512, h/8, w/8)
-                    ~ bottom_mutual_uncertainty, shape=(bs, 1, h/8, w/8)
                 For the deep supervision, we need to do the UpSampling to get:
                   - mut_evidence_list: 4 layer mutual evidence (bs, seg_class, h, w)
                   - mut_alpha_list: 4 layer mutual alpha (bs, seg_class, h, w)
                   - mut_uncertainty_list: 4 layer mutual alpha (bs, 1, h, w)
             Step 3. Do the Segmentation use `seg_feature_list` guiding by  `mut_info_list` and
-                    `top pixel-wise uncertainty` to get the `final_seg`, shape=(bs, seg_class, h, w) !
+                    `top pixel-wise uncertainty` to get the `final_seg`, shape=(bs, seg_class, h, w),
+                     while generating the `eta_for_cls` to guide the UI, shape=(bs, 64, h/8, w/8)
             Step 4. Do the Classification use `cls_feature` guiding by the `eta_for_cls`
                     to get the `cls_alpha`, shape=(bs, cls_class) and `cls_uncertainty`, shape=(bs, 1)
 
@@ -139,7 +135,7 @@ class UML_Net(nn.Module):
         # ---- Step 2. Mutual Feature Mixing & Decoding and UpSample for deep Supervision ---- #
         mut_feature_list = self.mut_feature_mixer(cls_feature_list, seg_feature_list)
         (mut_evidence_list, mut_alpha_list, mut_uncertainty_list,
-         mut_info_list, eta_for_cls) = self.mut_feature_decoder(mut_feature_list)
+         mut_info_list) = self.mut_feature_decoder(mut_feature_list)
         for i in range(1, len(mut_evidence_list)):  # layer 2 to 4
             mut_evidence_list[i] = self.mut_up_sample_dict[str(2 ** i)](mut_evidence_list[i])
             mut_alpha_list[i] = self.mut_up_sample_dict[str(2 ** i)](mut_alpha_list[i])
@@ -147,7 +143,7 @@ class UML_Net(nn.Module):
 
         # ---- Step 3. Do the Segmentation ---- #
         un_mut_uncertainty = mut_uncertainty_list[0]
-        final_seg = self.un_seg_decoder(seg_feature_list, mut_info_list, un_mut_uncertainty)
+        final_seg, eta_for_cls = self.un_seg_decoder(seg_feature_list, mut_info_list, un_mut_uncertainty)
 
         # ---- Step 4. Do the Classification ---- #
         cls_feature = cls_feature_list[-1]
@@ -167,19 +163,19 @@ if __name__ == "__main__":  # A demo using UML_Net
 
     # ---- Step 3. Forward ---- #
     images = torch.rand(1, 3, 256, 256)
-    cls_alpha, cls_uncertainty, mut_evidence_list, mut_alpha_list, mut_uncertainty_list, final_seg = model(images)
+    ca, cu, mel, mal, mul, fs = model(images)
     print("cls_alpha: ")
-    print(cls_alpha.shape)
+    print(ca.shape)
     print("cls_uncertainty: ")
-    print(cls_uncertainty.shape)
+    print(cu.shape)
     print("mutual_evidence_list: ")
-    for m_e in mut_evidence_list:
+    for m_e in mel:
         print(m_e.shape)
     print("mut_alpha_list: ")
-    for m_a in mut_alpha_list:
+    for m_a in mal:
         print(m_a.shape)
     print("mut_uncertainty_list: ")
-    for m_u in mut_uncertainty_list:
+    for m_u in mul:
         print(m_u.shape)
     print("final_seg: ")
-    print(final_seg.shape)
+    print(fs.shape)
