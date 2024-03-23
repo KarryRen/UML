@@ -101,7 +101,7 @@ class JointRefugeDataset(torch.utils.data.Dataset):
         image = (image / 255).transpose(2, 0, 1)  # scale to [0, 1], and transpose to (3, h, w)
         assert (0.0 <= image).all() and (image <= 1.0).all(), "image value ERROR !!!"
         # - label for classification task
-        cls_label = np.array([int(image_name.split("_")[1])])  # shape=(1,)
+        cls_label = int(image_name.split("_")[-2])  # shape=(1,)
         # - gt for segmentation task, and make it to 0-gd, 1-cup, 2-disc
         seg_gt = plt.imread(self.masks_file_path_list[idx])[:, :, 0].copy()  # shape=(h, w)
         seg_gt[seg_gt < 10] = 2
@@ -125,17 +125,18 @@ class JointRefugeDataset(torch.utils.data.Dataset):
 if __name__ == "__main__":  # a demo using JointRefugeDataset
     REFUGE_DATASET_PATH = "/Users/karry/KarryRen/Scientific-Projects/2023-UML/Code/Data/Refuge/Refuge_Dataset"
 
-    refuge_dataset = JointRefugeDataset(root_path=REFUGE_DATASET_PATH, data_type="Test")
+    refuge_dataset = JointRefugeDataset(root_path=REFUGE_DATASET_PATH, data_type="Train")
 
     # show the image
     print(refuge_dataset[1]["item_name"])
     plt.subplot(1, 2, 1)
     plt.imshow(refuge_dataset[1]["image"].transpose(1, 2, 0))
     plt.subplot(1, 2, 2)
-    plt.imshow(refuge_dataset[1]["seg_gt"].transpose(1, 2, 0))
+    plt.imshow(refuge_dataset[1]["seg_gt"][0])
     plt.show()
 
     for i in range(len(refuge_dataset)):
+        print(refuge_dataset[i]["item_name"])
         print(refuge_dataset[i]["image"].max(), refuge_dataset[i]["image"].min())
         print(refuge_dataset[i]["seg_gt"].shape)
         print(refuge_dataset[i]["cls_label"])

@@ -10,6 +10,7 @@ from torch.utils import data
 import torch
 import time
 import numpy as np
+import warnings
 
 import config_refuge as config
 from datasets.refuge_dataset import JointRefugeDataset
@@ -17,6 +18,9 @@ from models.uml_net import UML_Net
 from utils import print_log, adjust_lr, draw_curves
 from models.loss.cls_loss import cls_evidence_loss
 from models.loss.seg_loss import seg_dice_loss, seg_ce_loss, seg_evidence_loss
+
+# ---- Ignore Warnings ---- #
+warnings.filterwarnings("ignore")
 
 # ---- Setting CUDA Environment ---- #
 os.environ["CUDA_VISIBLE_DEVICES"] = config.GPU_ID  # set the visible devices
@@ -54,7 +58,7 @@ print_log(f"************ Valid image num: {len(valid_loader)} ************", log
 # ---- Construct the NetWork, Optimizer and Empty Loss-List --- #
 model = UML_Net(pretrained_res2net_path=config.PRETRAINED_RES2NET_PATH,
                 seg_class=config.SEG_CLASS, cls_class=config.CLS_CLASS)
-model = torch.nn.DataParallel(model)  # make the model parallel to cuda
+model = torch.nn.DataParallel(model).cuda()  # make the model parallel to cuda
 optimizer = torch.optim.Adam(model.parameters(), lr=config.LEARNING_RATE, weight_decay=config.WEIGHT_DECAY)
 sum_loss_list_all_epoch, cls_loss_list_all_epoch, seg_loss_list_all_epoch, mut_loss_list_all_epoch = [], [], [], []
 epoch_valid_metric = []
@@ -72,9 +76,9 @@ for epoch in range(config.EPOCH):
         # compute the training step
         step = (config.TRAIN_NUM / config.BATCH_SIZE) * epoch + i_iter
         # get the data
-        images = batch_data["image"].to(dtype=torch.float32)  # images, shape=(bs, 3, h, w)
-        cls_labels = batch_data["cls_label"].to(dtype=torch.int64)  # cls_labels, shape=(bs, 1)
-        seg_gts = batch_data["seg_gt"].to(dtype=torch.int64)  # seg_gts, shape=(bs, 1, h, w)
+        images = batch_data["image"].to(dtype=torch.float32).cuda()  # images, shape=(bs, 3, h, w)
+        cls_labels = batch_data["cls_label"].to(dtype=torch.int64).cuda()  # cls_labels, shape=(bs, 1)
+        seg_gts = batch_data["seg_gt"].to(dtype=torch.int64).cuda()  # seg_gts, shape=(bs, 1, h, w)
         # train
         optimizer.zero_grad()  # zero the optimizer grad
         adjust_lr(optimizer=optimizer, base_lr=config.LEARNING_RATE, step=step, epoch=epoch,

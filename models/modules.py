@@ -376,7 +376,7 @@ class UIClsDecoder(nn.Module):
         """
 
         super(UIClsDecoder, self).__init__()
-        self.classes = cls_class
+        self.cls_class = cls_class
 
         # the reliable conv
         self.conv_reliable = DoubleConv2d(in_channels=64, out_channels=1024)
@@ -402,7 +402,7 @@ class UIClsDecoder(nn.Module):
         # the average pool
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         # the linear fc layer
-        self.cls_predict = nn.Sequential(nn.Linear(1024, self.classes, bias=False))
+        self.cls_predict = nn.Sequential(nn.Linear(1024, cls_class, bias=False))
 
     def forward(self, cls_feature: torch.Tensor, eta_for_cls: tuple):
         """ Forward function of UNClsDecoder.
@@ -445,7 +445,7 @@ class UIClsDecoder(nn.Module):
         # belief (bs, cls_class) image-level
         cls_belief = (cls_alpha - 1) / (S.expand(cls_alpha.shape))
         # uncertainty (bs, 1) image-level
-        cls_uncertainty = self.classes / S
+        cls_uncertainty = self.cls_class / S
         return cls_alpha, cls_uncertainty
 
     def infer(self, x: torch.Tensor):
