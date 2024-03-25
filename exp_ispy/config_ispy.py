@@ -2,7 +2,7 @@
 # @Time    : 2023/3/22 15:45
 # @Author  : Karry Ren
 
-""" Config file. Set all hyperparameters for Refuge Dataset. """
+""" Config file. Set all hyperparameters for ISPY Dataset. """
 
 # ************************************************************************************ #
 # ************************************ GPU SETTINGS ********************************** #

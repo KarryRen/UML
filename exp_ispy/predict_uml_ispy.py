@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-# @Time    : 2023-03-23 22:52
-# @Author  : Kai Ren
-# @Comment : used for test data
+# @Time    : 2023/3/23 15:45
+# @Author  : Karry Ren
 
 import torch
 import os
