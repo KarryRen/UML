@@ -153,7 +153,6 @@ class UML_Net(nn.Module):
 
 
 if __name__ == "__main__":  # A demo using UML_Net
-
     # ---- Step 1. Build the UML_Net ---- #
     model = UML_Net(pretrained_res2net_path=None, seg_class=2, cls_class=2)
 
