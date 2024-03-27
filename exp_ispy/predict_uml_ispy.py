@@ -34,8 +34,7 @@ def predict_refuge():
     model.load_state_dict(torch.load("E:/renkai/Joint_RK/Code/UML/exp_ispy/save/checkpoints/Model_results/9_uml_ispy"))
 
     # ---- predict and get index ---- #
-    result = predict_ispy_refuge(test_data_loader=test_loader, model=model,
-                                 save_img_path=config.SEG_RESULT_PATH_OF_TEST)
+    predict_ispy_refuge(test_data_loader=test_loader, model=model, save_img_path=config.SEG_RESULT_PATH_OF_TEST)
 
 
 def predict_ispy_refuge(test_data_loader, model, save_img_path):
