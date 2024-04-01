@@ -1,16 +1,46 @@
 # -*- coding: utf-8 -*-
-# @Time    : 2023/3/20 16:42
+# @Time    : 2023/3/20 15:04
 # @Author  : Karry Ren
 
-""" The torch.Dataset of I-SPY1 dataset.
+""" The preprocess code of raw I-SPY1 dataset (download from web).
 
-After the preprocessing raw I-SPY1 dataset (download from web) by
-    run `python ispy_preprocess.py` you will get the following I-SPY1 dataset directory:
-    ISPY_DATASET_PATH/
+Because we want to make the code clear and beautiful, so we need you to
+    do some directory creation !!!
+
+Please `DOWNLOAD` I-SPY1 dataset following `README.md`,
+    and move all files to `ISPY_DATASET_DOWNLOAD_PATH` to get the following directory structure:
+    ISPY_DATASET_DOWNLOAD_PATH/
+        ├── Dataset ISPY
+        ├── outcome_new.xlsx
+        └── Tumor_segmentation_new
+
+Then you need to create the following directory structure `BY HAND`:
+    ISPY_DATASET_PROCESS_PATH/
+        ├── Train
+            ├── images
+            └── masks
+        ├── Valid
+            ├── images
+            └── masks
+        └── Test
+            ├── images
+            └── masks
+
+The core operations of this preprocessing are:
+    - split the dataset to train | valid | test.
+    - slice the 3D images(masks) to 2d images(masks).
+    - put the label to the image and mask name.
+
+Firstly you should set the `ISPY_DATASET_DOWNLOAD_PATH` and `ISPY_DATASET_PROCESS_PATH`
+based on your situation, and set the hyper-param `KEEP_SLICE_NUM`.
+
+Then you can run `python ispy_preprocess.py` to  preprocess the I-SPY1 Dataset and
+    you will get the following directory structure:
+    ISPY_DATASET_PROCESS_PATH/
         ├── Train
             ├── images
                 ├── ispy_xxxx1 (KEEP_SLICE_NUM images)
-                    ├── ispy_xxxx1_pcr_s1_img.jpg
+                    ├── ispy_xxxx1_pcr(0 or 1)_s1_img.jpg
                     ├── ispy_xxxx1_pcr_s2_img.jpg
                     ├── ...
                     └── ispy_xxxx1_pcr_sn_img.jpg
@@ -19,7 +49,7 @@ After the preprocessing raw I-SPY1 dataset (download from web) by
                 └── ispy_xxxxn
             └── masks
                 ├── ispy_xxxx1 (KEEP_SLICE_NUM masks)
-                    ├── ispy_xxxx1_pcr_s1_msk.jpg
+                    ├── ispy_xxxx1_pcr(0 or 1)_s1_msk.jpg
                     ├── ispy_xxxx1_pcr_s2_msk.jpg
                     ├── ...
                     └── ispy_xxxx1_pcr_sn_msk.jpg
@@ -33,131 +63,128 @@ After the preprocessing raw I-SPY1 dataset (download from web) by
             ├── images
             └── masks
 
-In this dataset:
-    - during `__init__()`, we will LOAD all images and masks file path.
-    - during `__getitem__()`, we will READ 1 image and mask and label to memory.
-
 """
 
-import torch.utils.data
 import os
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import nibabel as nib
 
+# set the ISPY dataset path, the PATH is depended on your situation
+# (we suggest you set the absolut path)
+ISPY_DATASET_DOWNLOAD_PATH = "/Users/karry/KarryRen/Scientific-Projects/2023-UML/Code/Data/I-SPY1/ISPY_Download"
+ISPY_DATASET_PROCESS_PATH = "/Users/karry/KarryRen/Scientific-Projects/2023-UML/Code/Data/I-SPY1/ISPY_Dataset"
 
-class JointIspyDataset(torch.utils.data.Dataset):
-    """ The Joint I-SPY1 Dataset. """
+# set the hyper-param `KEEP_SLICE_NUM`
+# (we suggest you only keep 10 slices for each case)
+KEEP_SLICE_NUM = 10
 
-    def __init__(self, root_path: str, data_type: str = "Train"):
-        """ The init function of JointIspyDataset. Will load all image and mask file path.
+# begin pre-process
+print(f"===================== I-SPY1 Begin Pre-Process =====================")
 
-        :param root_path: the root path of I-SPY1 Dataset
-        :param data_type: the data type, you have only 3 choices:
-            - "Train" for train data
-            - "Valid" for valid data
-            - "Test" for test data
+# ---- Step 1. Read the `SUBJECTID` and `PCR` from the `outcome_new.xlsx` ---- #
+id_pcr0_tuple_list = []  # define the id and pcr(label=0) tuple empty list
+id_pcr1_tuple_list = []  # define the id and pcr(label=1) tuple empty list
+outcome_new_file_path = f"{ISPY_DATASET_DOWNLOAD_PATH}/outcome_new.xlsx"
+outcome_new_df = pd.read_excel(outcome_new_file_path)
+for row_idx, id_pcr_row in outcome_new_df.iterrows():
+    id_pcr_tuple = (id_pcr_row["SUBJECTID"], id_pcr_row["PCR"])
+    if id_pcr_row["PCR"] == 0:
+        id_pcr0_tuple_list.append(id_pcr_tuple)
+    elif id_pcr_row["PCR"] == 1:
+        id_pcr1_tuple_list.append(id_pcr_tuple)
+    else:
+        raise TypeError(id_pcr_row["PCR"])
+print(f"All PCR : 0-{len(id_pcr0_tuple_list)} cases, 1-{len(id_pcr1_tuple_list)} cases.")
 
-        """
+# ---- Step 2. Split the train, valid and test ID ---- #
+# Totally: 157 (114-pcr0, 43-pcr1) cases.
+# Train: 127 (92-pcr0,  35-pcr1) cases;
+# Valid: 15 (11-pcr0, 4-pcr1) cases;
+# Test: 15 (11-pcr0, 4-pcr1) cases.
+train_id_pcr_tuple_list = id_pcr0_tuple_list[:92] + id_pcr1_tuple_list[:35]
+valid_id_pcr_tuple_list = id_pcr0_tuple_list[92:103] + id_pcr1_tuple_list[35:39]
+test_id_pcr_tuple_list = id_pcr0_tuple_list[103:] + id_pcr1_tuple_list[39:]
+print(f"Split: "
+      f"Train-{len(train_id_pcr_tuple_list)} cases, "
+      f"Valid-{len(valid_id_pcr_tuple_list)} cases, "
+      f"Test-{len(test_id_pcr_tuple_list)} cases.")
 
-        # ---- Step 1. Define the images and masks file path list ---- #
-        self.images_file_path_list = []
-        self.masks_file_path_list = []
+# ---- Step 3. For-loop the id_pcr_tuple list and store .nii to .jpg images ---- #
+for data_type in ["Train", "Valid", "Test"]:
+    # get which id_pcr_tuple_list to read
+    print(f"============ {data_type} =============")
+    if data_type == "Train":
+        id_pcr_tuple_list = train_id_pcr_tuple_list
+    elif data_type == "Valid":
+        id_pcr_tuple_list = valid_id_pcr_tuple_list
+    elif data_type == "Test":
+        id_pcr_tuple_list = test_id_pcr_tuple_list
+    else:
+        raise TypeError(data_type)
+    # for loop the id_pcr_tuple_list
+    for id_pcr_tuple in id_pcr_tuple_list:
+        print(id_pcr_tuple)
+        # get the subject id nad pcr
+        sub_id = id_pcr_tuple[0]
+        pcr = id_pcr_tuple[1]
+        # construct the image and mask path
+        image_path = f"{ISPY_DATASET_DOWNLOAD_PATH}/Dataset ISPY/ISPY_{sub_id}/DCEMRI_1.nii"
+        mask_path = f"{ISPY_DATASET_DOWNLOAD_PATH}/Tumor_segmentation_new/ISPY_{sub_id}_tumor_mask.nii"
+        # read the .nii image and mask
+        image = nib.load(image_path)
+        mask = nib.load(mask_path)
+        # get the data and transform
+        img_data = image.get_fdata()
+        msk_data = mask.get_fdata()
+        img_data = np.rot90(img_data, 1)
+        img_data = np.flip(img_data, axis=0)
+        msk_data = np.rot90(msk_data, 1)
+        msk_data = np.flip(msk_data, axis=0)
+        # assert shape equal
+        assert img_data.shape == msk_data.shape, "img.shape != msk.shape, data ERROR !!"
+        # make the case directories
+        case_image_path = f"{ISPY_DATASET_PROCESS_PATH}/{data_type}/images/ispy_{sub_id}"
+        case_mask_path = f"{ISPY_DATASET_PROCESS_PATH}/{data_type}/masks/ispy_{sub_id}"
+        if not os.path.exists(case_image_path):
+            os.makedirs(case_image_path)
+        if not os.path.exists(case_mask_path):
+            os.makedirs(case_mask_path)
+        # compute max mask idx and get the start idx
+        msk_sum = msk_data.sum(axis=(0, 1))
+        msk_sum_idx = msk_sum.argmax()
+        # for-loop the mask data slices
+        slice_num = 0  # note the save slice num
+        for slices in range(msk_sum_idx - KEEP_SLICE_NUM // 2, msk_data.shape[-1]):
+            # just get the msk not all ground slices
+            if not msk_data[:, :, slices].sum() == 0:
+                # construct the process path
+                process_image_path = f"{case_image_path}/ispy_{sub_id}_{pcr}_s{slices}_img.jpg"
+                process_mask_path = f"{case_mask_path}/ispy_{sub_id}_{pcr}_s{slices}_msk.jpg"
+                # save the image and mask
+                plt.imsave(process_image_path, img_data[:, :, slices], cmap="gray")
+                plt.imsave(process_mask_path, msk_data[:, :, slices], cmap="gray")
+                slice_num += 1
+            # just save KEEP_SLICE_NUM slices
+            if slice_num == KEEP_SLICE_NUM:
+                break
+        # append data
+        if slice_num < KEEP_SLICE_NUM:
+            # just get the msk not all ground slices
+            for ni in range(1, KEEP_SLICE_NUM):
+                slices = msk_sum_idx - KEEP_SLICE_NUM // 2 - ni
+                if not msk_data[:, :, slices].sum() == 0:
+                    # construct the process path
+                    process_image_path = f"{case_image_path}/ispy_{sub_id}_{pcr}_s{slices}_img.jpg"
+                    process_mask_path = f"{case_mask_path}/ispy_{sub_id}_{pcr}_s{slices}_msk.jpg"
+                    # save the image and mask
+                    plt.imsave(process_image_path, img_data[:, :, slices], cmap="gray")
+                    plt.imsave(process_mask_path, msk_data[:, :, slices], cmap="gray")
+                    slice_num += 1
+                # just save KEEP_SLICE_NUM slices
+                if slice_num == KEEP_SLICE_NUM:
+                    break
+        assert slice_num == KEEP_SLICE_NUM, "Slice num WRONG !!"
 
-        # ---- Step 2. Get all cases ---- #
-        # construct the images and masks directory path
-        images_directory_path = f"{root_path}/{data_type}/images"
-        masks_directory_path = f"{root_path}/{data_type}/masks"
-        # get the case id in directory
-        images_case_id_list = sorted(os.listdir(images_directory_path))
-        masks_case_id_list = sorted(os.listdir(masks_directory_path))
-        assert images_case_id_list == masks_case_id_list, "images cases are not == masks cases !!!"
-        case_id_list = images_case_id_list  # set the images_cases_list to cases_list
-
-        # ---- Step 3. Read all images and masks file path ---- #
-        for case_id in case_id_list:
-            # get the cased images and masks directory
-            images_case_id_directory_path = f"{images_directory_path}/{case_id}"
-            masks_case_id_directory_path = f"{masks_directory_path}/{case_id}"
-            # get all images and masks file path
-            images_case_id_path_list = sorted(os.listdir(images_case_id_directory_path))
-            masks_case_id_path_list = sorted(os.listdir(masks_case_id_directory_path))
-            assert len(images_case_id_path_list) == len(masks_case_id_path_list), "Image Mask num not equal !!!"
-            # append all path to list
-            for images_case_id_path in images_case_id_path_list:
-                self.images_file_path_list.append(f"{images_case_id_directory_path}/{images_case_id_path}")
-            for masks_case_id_path in masks_case_id_path_list:
-                self.masks_file_path_list.append(f"{masks_case_id_directory_path}/{masks_case_id_path}")
-
-        # ---- Step 4. Check Data Len ---- #
-        assert len(self.images_file_path_list) == len(self.masks_file_path_list), "Image Mask num not total equal !!!"
-
-    def __len__(self):
-        """ Get the length of dataset. """
-
-        return len(self.images_file_path_list)
-
-    def __getitem__(self, idx: int):
-        """ Get the item.
-
-        :param idx: the item idx
-
-        return: a dict with the format:
-            {
-                "image": the image array, shape=(3, 128, 128)
-                "cls_label": the label for classification, shape=()
-                "seg_gt": the ground truth for segmentation, shape=(1, 128, 128)
-                    only have 0 and 1, 0-gd and 1-tumor
-                "item_name": a str
-            }
-        """
-
-        # ---- Check image and mask right ---- #
-        image_name = self.images_file_path_list[idx].split("/")[-1]
-        image_case_id = image_name.split("_")[1]
-        image_slice_num = image_name.split("_")[3]
-        mask_name = self.masks_file_path_list[idx].split("/")[-1]
-        mask_case_id = mask_name.split("_")[1]
-        mask_slice_num = mask_name.split("_")[3]
-        assert image_case_id == mask_case_id and image_slice_num == mask_slice_num, "Image Mask not Right !!!"
-
-        # ---- Read the image, label and mask ---- #
-        # - image
-        image = plt.imread(self.images_file_path_list[idx])  # shape=(h, w, 3)
-        image = (image / 255).transpose(2, 0, 1)  # scale to [0, 1], and transpose to (3, h, w)
-        assert (0.0 <= image).all() and (image <= 1.0).all(), "image value ERROR !!!"
-        # - label for classification task
-        cls_label = int(image_name.split("_")[2])
-        # - gt for segmentation task, and make it 0-gd, 1-tumor
-        seg_gt = plt.imread(self.masks_file_path_list[idx])[:, :, 0]  # shape=(h, w)
-        seg_gt = (seg_gt >= 50).astype(np.int8)  # avoid not 0 or 1
-        seg_gt = seg_gt.reshape(1, seg_gt.shape[0], seg_gt.shape[1])
-        # - the item name, just be the image name
-        item_name = image_name
-
-        # ---- Construct the item ---- #
-        item = {
-            "image": image,
-            "cls_label": cls_label,
-            "seg_gt": seg_gt,
-            "item_name": item_name
-        }
-
-        return item
-
-
-if __name__ == "__main__":  # a demo using JointIspyDataset
-    ISPY_DATASET_PATH = "/Users/karry/KarryRen/Scientific-Projects/2023-UML/Code/Data/I-SPY1/ISPY_Dataset"
-
-    ispy_dataset = JointIspyDataset(root_path=ISPY_DATASET_PATH, data_type="Test")
-
-    # show the image
-    print(ispy_dataset[1]["item_name"])
-    plt.subplot(1, 2, 1)
-    plt.imshow(ispy_dataset[1]["image"].transpose(1, 2, 0))
-    plt.subplot(1, 2, 2)
-    plt.imshow(ispy_dataset[1]["seg_gt"])
-    plt.show()
-
-    # for i in range(len(ispy_dataset)):
-    #     print(ispy_dataset[i]["image"].max(), ispy_dataset[i]["image"].min())
-    #     print(ispy_dataset[i]["seg_gt"].sum())
+print(f"===================== I-SPY1 Pre-Process Over ! =====================")
