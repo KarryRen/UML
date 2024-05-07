@@ -12,23 +12,21 @@
 > ├── datasets 
 >     ├── datasets_preprocess
 >         ├── ispy_preprocess.py # The preprocess code of I-SPY1 dataset.
->         ├── refuge_preprocess.py # The preprocess code of REFUGE Glaucoma dataset.
->         └── isic_preprocess.py # The preprocess code of ISIC dataset. Updating 🔥.
+>         └── refuge_preprocess.py # The preprocess code of REFUGE Glaucoma dataset.
 >     ├── ispy_dataset.py # The torch.Dataset of I-SPY1 dataset.
->     ├── refuge_dataset.py # The torch.Dataset of Refuge dataset.
->     └── isic_dataset.py # The torch.Dataset of Refuge dataset. Updating 🔥.
+>     └── refuge_dataset.py # The torch.Dataset of Refuge dataset.
 > ├── models
 >     ├── uml_net.py # The Uncertainty Mutual Leaning Neural Network.
 >     ├── modules.py # The modules for UML_Net.
 >     ├── model_lib 
 >         ├── pretrained_model_zoo # We suggest you download the pretrained model to this path.
 >         └── res2net.py # The pre-trained Res2Net module.
->     ├── loss
+>     └── loss
 >         ├── cls_loss.py # The loss function for classification.
->         ├── seg_loss.py # The loss function for segmentation.
+>         └── seg_loss.py # The loss function for segmentation.
 > ├── exp_refuge 
 >     ├── train_uml_refuge.py # The UML_Net training code of Refuge Dataset.
->     ├── config_refuge.py # The config file of Refuge Dataset.
+>     └── config_refuge.py # The config file of Refuge Dataset.
 > └── utils.py # The util functions.
 > ```
 
@@ -54,11 +52,10 @@ potential to explore the development of more reliable and explainable medical im
 
 ## Dataset Acquisition
 
-We use **3 Datasets** to test our UML network. You can **DOWNLOAD** the raw dataset from the following links. 
+We use **2 Datasets** to test our UML network. You can **DOWNLOAD** the raw dataset from the following links. 
 
 - **I-SPY1 Trail Dataset**. Could be downloaded from [**HERE**](https://www.kaggle.com/datasets/saarthakkapse/ispy1-trail-dataset) ! 
-- **Refuge Glaucoma**. Could be downloaded from [**HERE**](https://pan.baidu.com/s/1DE8a3UgwGJY85bsr4U7tdw?pwd=2023) ! 
-- **ISIC Challenge 2017**. Could be downloaded from [**HERE**](https://challenge.isic-archive.com/data/#2017) ! 
+- **Refuge Glaucoma**. Could be downloaded from [**HERE**](https://pan.baidu.com/s/1DE8a3UgwGJY85bsr4U7tdw?pwd=2023) !
 
 
 
@@ -72,9 +69,6 @@ After downloading the datasets following the **Dataset Acquisition**, data prepr
 - **Refuge Glaucoma**. 
   - The Pre-Process code is in `refuge_preprocess.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/dataset_preprocess/refuge_preprocess.py) ! You can **RUN** it using `python3 refuge_preprocess.py`
   - The  `torch.Dataset` code is in `refuge_dataset.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/dataset/refuge_dataset.py) !
-- **ISIC Challenge 2017**. 
-  - The Pre-Process code is updating 🔥 !
-  - The  `torch.Dataset` code is updating 🔥 !
 
 
 
@@ -91,10 +85,3 @@ There are too many **differences** between the different datasets, so we built s
 - **I-SPY1 Trail Dataset**.
 - **Refuge Glaucoma**.
   - The training code is in `train_uml_refuge.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/exp_refuge/train_uml_refuge.py) ! You can **RUN** it using `python3 train_uml_refuge.py`
-- **ISIC Challenge 2017**. 
-  - Code is Updating 🔥 !
-
-
-
-
-
