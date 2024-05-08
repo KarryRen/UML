@@ -10,11 +10,10 @@ import torch.nn.functional as F
 
 def KL(alpha, c):
     """
-    Args:
-        alpha: the Dirichlet of cls
-        c: num of cls classes
+    :param alpha: the Dirichlet of cls
+    :param c: num of cls classes
 
-    Returns: KL loss of cls
+    :return: KL loss of cls
 
     """
 
