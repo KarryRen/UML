@@ -31,7 +31,6 @@
 > ```
 
 
-
 ## Introduction
 
 Classification and segmentation are crucial in medical image analysis as they enable accurate diagnosis and disease
