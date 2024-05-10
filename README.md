@@ -43,7 +43,7 @@ navigator is constructed for better using mutual features and generating segment
 instructor is proposed to screen reliable masks for classification. Overall, UML could produce confidence estimation in
 features and performance for each link (classification and segmentation). The experiments on the public datasets
 demonstrate that our UML outperforms existing methods in terms of both accuracy and robustness. Our UML has the
-potential to explore the development of more reliable and explainable medical image analysis models.
+potential to explore the development of more reliable and explainable medical image analysis models. 
 
 <img src="./images/UML_Framework.jpg" alt="UML_Framework " style="zoom:60%;" />
 
