@@ -3,32 +3,33 @@
 > This repository provides the code for our accepted **MICCAI2023 paper** "Uncertainty-Informed Mutual Learning for
 > Joint Medical Image Classification and Segmentation". 
 > 
-> Official implementation: [**UML**](https://link.springer.com/chapter/10.1007/978-3-031-43901-8_4). The structure of this repository is as follows:
-> 
->```python
-> UML/
-> ├── images # All images used in this repository.
->     ├── UML_Framework.jpg # The Framework image.
-> ├── datasets 
->     ├── datasets_preprocess
->         ├── ispy_preprocess.py # The preprocess code of I-SPY1 dataset.
->         └── refuge_preprocess.py # The preprocess code of REFUGE Glaucoma dataset.
->     ├── ispy_dataset.py # The torch.Dataset of I-SPY1 dataset.
->     └── refuge_dataset.py # The torch.Dataset of Refuge dataset.
-> ├── models
->     ├── uml_net.py # The Uncertainty Mutual Leaning Neural Network.
->     ├── modules.py # The modules for UML_Net.
->     ├── model_lib 
->         ├── pretrained_model_zoo # We suggest you download the pretrained model to this path.
->         └── res2net.py # The pre-trained Res2Net module.
->     └── loss
->         ├── cls_loss.py # The loss function for classification.
->         └── seg_loss.py # The loss function for segmentation.
-> ├── exp_refuge 
->     ├── train_uml_refuge.py # The UML_Net training code of Refuge Dataset.
->     └── config_refuge.py # The config file of Refuge Dataset.
-> └── utils.py # The util functions.
-> ```
+
+Official implementation: [**UML**](https://link.springer.com/chapter/10.1007/978-3-031-43901-8_4). The structure of this repository is as follows:
+
+```python
+UML/
+├── images # All images used in this repository.
+    ├── UML_Framework.jpg # The Framework image.
+├── datasets 
+    ├── datasets_preprocess
+        ├── ispy_preprocess.py # The preprocess code of I-SPY1 dataset.
+        └── refuge_preprocess.py # The preprocess code of REFUGE Glaucoma dataset.
+    ├── ispy_dataset.py # The torch.Dataset of I-SPY1 dataset.
+    └── refuge_dataset.py # The torch.Dataset of Refuge dataset.
+├── models
+    ├── uml_net.py # The Uncertainty Mutual Leaning Neural Network.
+    ├── modules.py # The modules for UML_Net.
+    ├── model_lib 
+        ├── pretrained_model_zoo # We suggest you download the pretrained model to this path.
+        └── res2net.py # The pre-trained Res2Net module.
+└── loss
+    ├── cls_loss.py # The loss function for classification.
+    └── seg_loss.py # The loss function for segmentation.
+├── exp_refuge 
+    ├── train_uml_refuge.py # The UML_Net training code of Refuge Dataset.
+    └── config_refuge.py # The config file of Refuge Dataset.
+└── utils.py # The util functions.
+```
 
 
 ## Introduction
@@ -84,3 +85,26 @@ There are too many **differences** between the different datasets, so we built s
 - **I-SPY1 Trail Dataset**.
 - **Refuge Glaucoma**.
   - The training code is in `train_uml_refuge.py`, [**HERE**](https://github.com/KarryRen/UML/blob/main/exp_refuge/train_uml_refuge.py) ! You can **RUN** it using `python3 train_uml_refuge.py`
+
+
+
+## Citation
+
+If you find our work is HELPFUL for your research, please consider to CITE:
+
+```
+@inproceedings{ren2023UML,
+  title={Uncertainty-informed mutual learning for joint medical image classification and segmentation},
+  author={Ren, Kai and Zou, Ke and Liu, Xianjie and Chen, Yidi and Yuan, Xuedong and Shen, Xiaojing and Wang, Meng and Fu, Huazhu},
+  booktitle={International Conference on Medical Image Computing and Computer-Assisted Intervention},
+  pages={35--45},
+  year={2023},
+  organization={Springer}
+}
+```
+
+
+
+## Contact
+
+If you have any problems about our work, please contact [**us**](KarryRenKai@outlook.com).
